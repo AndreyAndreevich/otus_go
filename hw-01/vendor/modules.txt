@@ -1,0 +1,10 @@
+# github.com/beevik/ntp v0.2.0
+github.com/beevik/ntp
+# golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a
+golang.org/x/net/ipv4
+golang.org/x/net/bpf
+golang.org/x/net/internal/iana
+golang.org/x/net/internal/socket
+# golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
+golang.org/x/sys/unix
+golang.org/x/sys/windows

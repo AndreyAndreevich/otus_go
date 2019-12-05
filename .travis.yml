@@ -4,4 +4,4 @@ go:
   - master
 
 script:
-  - echo "hello"
+  - go build

@@ -5,5 +5,4 @@ go:
 
 script:
   - cd hw-01
-  - go mod vendor
   - go build

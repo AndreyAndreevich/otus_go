@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/AndreyAndreevich/otus_go/hw-01/app"
-	"os"
+	"log"
 )
 
 func main() {
@@ -13,7 +12,6 @@ func main() {
 
 	err := application.Run()
 	if err != nil {
-		fmt.Println(os.Stderr, err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 }

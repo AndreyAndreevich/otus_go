@@ -3,6 +3,11 @@ language: go
 go:
   - master
 
+before_install:
+  - go get -u golang.org/x/lint/golint
+
 script:
   - cd hw-01
+  - golint ./...
+  - go test ./...
   - go build

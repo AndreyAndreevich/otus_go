@@ -12,7 +12,7 @@ type ClockMock struct {
 	mock.Mock
 }
 
-func (c *ClockMock)GetCurrentTime() (time.Time, error)  {
+func (c *ClockMock) GetCurrentTime() (time.Time, error) {
 	args := c.Called()
 	return args.Get(0).(time.Time), args.Error(1)
 }
@@ -22,11 +22,10 @@ type WriterMock struct {
 	currentTime time.Time
 }
 
-func (w *WriterMock)Write(args ... interface{}) error {
+func (w *WriterMock) Write(args ...interface{}) error {
 	w.currentTime = args[0].(time.Time)
 	return nil
 }
-
 
 func TestApp_Run_With_Error(t *testing.T) {
 	clock := &ClockMock{}
@@ -49,5 +48,5 @@ func TestApp_Run_WriteTime(t *testing.T) {
 
 	err := app.Run()
 	assert.NoError(t, err)
-	assert.Equal(t,currentTime, writer.currentTime)
+	assert.Equal(t, currentTime, writer.currentTime)
 }

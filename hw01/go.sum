@@ -1,3 +1,5 @@
+github.com/AndreyAndreevich/otus_go/hw-01 v0.0.0-20191207151501-aad173267b95 h1:qHzOo01N4brY4CzAXp2PnH8E3O7O40FtkqPzCwrQlAc=
+github.com/AndreyAndreevich/otus_go/hw-01 v0.0.0-20191207151501-aad173267b95/go.mod h1:lbroe3KYLQlyKEQs7bl0ZpEH0KQVBWFnX5bQ9wL0JyY=
 github.com/beevik/ntp v0.2.0 h1:sGsd+kAXzT0bfVfzJfce04g+dSRfrs+tbQW8lweuYgw=
 github.com/beevik/ntp v0.2.0/go.mod h1:hIHWr+l3+/clUnF44zdK+CWW7fO8dR5cIylAQ76NRpg=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=

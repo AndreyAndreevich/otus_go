@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/AndreyAndreevich/otus_go/hw-01/interfaces"
+	"github.com/AndreyAndreevich/otus_go/hw01/interfaces"
 )
 
 // App is main application struct

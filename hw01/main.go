@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/AndreyAndreevich/otus_go/hw-01/app"
+	"github.com/AndreyAndreevich/otus_go/hw01/app"
 )
 
 func main() {

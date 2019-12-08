@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/AndreyAndreevich/otus_go/hw-01/app"
 	"log"
+
+	"github.com/AndreyAndreevich/otus_go/hw-01/app"
 )
 
 func main() {

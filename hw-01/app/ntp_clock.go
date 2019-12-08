@@ -1,8 +1,9 @@
 package app
 
 import (
-	"github.com/beevik/ntp"
 	"time"
+
+	"github.com/beevik/ntp"
 )
 
 // NtpClock gets realtime clock

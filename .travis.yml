@@ -7,7 +7,7 @@ before_install:
   - go get -u golang.org/x/lint/golint
 
 script:
-  - cd hw-01
+  - cd hw01
   - golint ./...
   - go test ./...
   - go build

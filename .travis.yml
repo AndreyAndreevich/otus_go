@@ -9,6 +9,7 @@ before_install:
 stages:
   - build_hw01
   - build_hw02
+  - build_hw03
 
 jobs:
   include:
@@ -20,9 +21,17 @@ jobs:
       - go test ./...
       - go build
 
-    - stage: build_hw01
+    - stage: build_hw02
       script:
         - cd hw02
+        - golint -set_exit_status ./...
+        - go vet ./...
+        - go test ./...
+        - go build
+
+    - stage: build_hw03
+      script:
+        - cd hw03
         - golint -set_exit_status ./...
         - go vet ./...
         - go test ./...

@@ -7,6 +7,17 @@ import (
 	"github.com/jwangsadinata/go-multimap/slicemultimap"
 )
 
+func isMark(r rune) bool {
+	var marks = []rune{' ', ',', '.', '!', '?', ':', ';', '-', '\n', '\t'}
+	for _, mark := range marks {
+		if r == mark {
+			return true
+		}
+	}
+	return false
+}
+
+// Top10 return top 10 words
 func Top10(text string) []string {
 	res := make([]string, 0, 10)
 
@@ -17,9 +28,10 @@ func Top10(text string) []string {
 	wordMap := make(map[string]int)
 	top := slicemultimap.New()
 
-	words := strings.Split(text, " ")
+	words := strings.FieldsFunc(text, isMark)
 
 	for _, word := range words {
+		word = strings.ToLower(word)
 		count := wordMap[word] + 1
 		wordMap[word] = count
 		top.Remove(count-1, word)

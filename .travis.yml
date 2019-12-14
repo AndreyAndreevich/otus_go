@@ -6,9 +6,21 @@ go:
 before_install:
   - go get -u golang.org/x/lint/golint
 
-script:
+stages:
+  - build
+
+build:hw01:
+  stage: build
+  script:
   - cd hw01
   - golint ./...
   - go test ./...
   - go build
 
+build:hw02:
+  stage: build
+  script:
+    - cd hw02
+    - golint ./...
+    - go test ./...
+    - go build

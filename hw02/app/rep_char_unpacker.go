@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// RepCharUnpacker is unpacker of repetitive char
 type RepCharUnpacker struct {
 }
 
@@ -18,6 +19,8 @@ func writeFew(builder *strings.Builder, number *int, rune rune) {
 	}
 }
 
+// Unpack is method of RepCharUnpacker
+// example: "a4bc2d5e" => "aaaabccddddde"
 func (m *RepCharUnpacker) Unpack(input string) (string, error) {
 	result := strings.Builder{}
 

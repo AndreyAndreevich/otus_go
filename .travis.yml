@@ -7,13 +7,11 @@ before_install:
   - go get -u golang.org/x/lint/golint
 
 stages:
-  - build_hw01
-  - build_hw02
-  - build_hw03
+  - build
 
 jobs:
   include:
-    - stage: build_hw01
+    - stage: build
       script:
       - cd hw01
       - golint -set_exit_status ./...
@@ -21,7 +19,7 @@ jobs:
       - go test ./...
       - go build
 
-    - stage: build_hw02
+    - stage: build
       script:
         - cd hw02
         - golint -set_exit_status ./...
@@ -29,7 +27,7 @@ jobs:
         - go test ./...
         - go build
 
-    - stage: build_hw03
+    - stage: build
       script:
         - cd hw03
         - golint -set_exit_status ./...

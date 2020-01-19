@@ -13,9 +13,12 @@ var maxBufferSize = 1024
 
 // Copy data from - to file
 func Copy(from string, to string, limit int, offset int) error {
-	err := checkArguments(from, to, limit, offset)
-	if err != nil {
-		return err
+	if limit < 0 {
+		return errors.New("limit mast be positive")
+	}
+
+	if offset < 0 {
+		return errors.New("offset mast be positive")
 	}
 
 	fromFile, err := os.Open(from)
@@ -83,18 +86,6 @@ func Copy(from string, to string, limit int, offset int) error {
 		i += bufferSize
 
 		bar.Add(bufferSize)
-	}
-
-	return nil
-}
-
-func checkArguments(from string, to string, limit int, offset int) error {
-	if limit < 0 {
-		return errors.New("limit mast be positive")
-	}
-
-	if offset < 0 {
-		return errors.New("offset mast be positive")
 	}
 
 	return nil

@@ -1,2 +1,5 @@
 # IDE
 .idea
+
+# Tests artifacts
+hw06/copy/test_dir

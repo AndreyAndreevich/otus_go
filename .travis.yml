@@ -46,3 +46,8 @@ jobs:
       script:
         - cd hw06
         - *common_script
+
+    - stage: build
+      script:
+        - cd hw07
+        - *common_script

@@ -7,6 +7,7 @@ import (
 	"os/exec"
 )
 
+// RunCmd run command with flags and env
 func RunCmd(cmd []string, env map[string]string) int {
 	name := cmd[0]
 	args := cmd[1:]

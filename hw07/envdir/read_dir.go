@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 )
 
+// ReadDir read envdir
 func ReadDir(dir string) (map[string]string, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {

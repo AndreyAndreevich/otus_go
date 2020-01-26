@@ -51,3 +51,8 @@ jobs:
       script:
         - cd hw07
         - *common_script
+
+    - stage: build
+      script:
+        - cd calendar
+        - *common_script

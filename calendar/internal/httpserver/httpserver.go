@@ -10,22 +10,22 @@ import (
 	"go.uber.org/zap"
 )
 
-// HttpServer is http message delivery
-type HttpServer struct {
+// HTTPServer is http message delivery
+type HTTPServer struct {
 	logger *zap.Logger
 	addr   string
 }
 
-// New created new HttpServer
-func New(logger *zap.Logger, ip string, port int) *HttpServer {
-	return &HttpServer{
+// New created new HTTPServer
+func New(logger *zap.Logger, ip string, port int) *HTTPServer {
+	return &HTTPServer{
 		logger: logger,
 		addr:   fmt.Sprintf("%s:%d", ip, port),
 	}
 }
 
 // AddHandler added handler to server
-func (s *HttpServer) AddHandler(pattern string, handler domain.Handler) {
+func (s *HTTPServer) AddHandler(pattern string, handler domain.Handler) {
 	http.HandleFunc(pattern, func(writer http.ResponseWriter, request *http.Request) {
 		data, err := ioutil.ReadAll(request.Body)
 		if err != nil {
@@ -51,6 +51,6 @@ func (s *HttpServer) AddHandler(pattern string, handler domain.Handler) {
 }
 
 // Run server (blocked)
-func (s *HttpServer) Run() error {
+func (s *HTTPServer) Run() error {
 	return http.ListenAndServe(s.addr, nil)
 }

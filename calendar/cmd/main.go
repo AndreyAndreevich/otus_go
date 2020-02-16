@@ -44,7 +44,7 @@ func main() {
 	}
 
 	storage := memorystorage.New()
-	eventsDelivery := httpserver.New(logger, cfg.HttpListen.IP, cfg.HttpListen.Port)
+	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
 	currentCalendar := calendar.New(logger, storage, eventsDelivery)
 
 	if err := currentCalendar.Run(); err != nil {

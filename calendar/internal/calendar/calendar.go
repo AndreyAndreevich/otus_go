@@ -1,26 +1,28 @@
 package calendar
 
 import (
-	"fmt"
+	"go.uber.org/zap"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 )
 
 // Calendar is main struct in program
 type Calendar struct {
+	logger  *zap.Logger
 	storage domain.Storage
 }
 
 // New create new calendar
-func New(storage domain.Storage) *Calendar {
+func New(logger *zap.Logger, storage domain.Storage) *Calendar {
 	return &Calendar{
+		logger:  logger,
 		storage: storage,
 	}
 }
 
 // Run calendar logic
 func (c *Calendar) Run() error {
-	fmt.Println("I'm the best of calendars")
+	c.logger.Info("I'm the best of calendars")
 
 	return nil
 }

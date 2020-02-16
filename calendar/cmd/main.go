@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/httpserver"
+
 	"go.uber.org/zap"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/config"
@@ -42,7 +44,8 @@ func main() {
 	}
 
 	storage := memorystorage.New()
-	currentCalendar := calendar.New(logger, storage)
+	eventsDelivery := httpserver.New(logger, cfg.HttpListen.IP, cfg.HttpListen.Port)
+	currentCalendar := calendar.New(logger, storage, eventsDelivery)
 
 	if err := currentCalendar.Run(); err != nil {
 		logger.Fatal("error calendar run", zap.Error(err))

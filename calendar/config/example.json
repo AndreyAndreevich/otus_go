@@ -1,8 +1,8 @@
 {
-  "log_file": "/Users/andrey/Develop/go/otus_go/calendar/log/log.json",
+  "log_file": "/Users/andrey/Develop/go/otus_go/calendar/log/log.txt",
   "log_level": "debug",
   "http_listen": {
     "ip": "127.0.0.1",
-    "port": 80
+    "port": 8080
   }
 }

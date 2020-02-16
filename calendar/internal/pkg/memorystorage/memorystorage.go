@@ -2,6 +2,7 @@ package memorystorage
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/simpleevent"
 
@@ -34,6 +35,7 @@ type eventData struct {
 
 // MemoryStorage - event's storage in memory
 type MemoryStorage struct {
+	mtx  sync.Mutex
 	data map[domain.EventID]eventData
 }
 
@@ -50,6 +52,9 @@ func (s *MemoryStorage) Insert(event domain.Event) error {
 	if eventType == UnknownEvent {
 		return ErrUnknownEvent
 	}
+
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 
 	if event.GetID() == 0 {
 		nextID := domain.EventID(1)
@@ -78,6 +83,9 @@ func (s *MemoryStorage) Remove(event domain.Event) error {
 		return ErrUnknownEvent
 	}
 
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
 	_, isExist := s.data[event.GetID()]
 	if !isExist {
 		return ErrNotExist
@@ -95,6 +103,9 @@ func (s *MemoryStorage) Update(event domain.Event) error {
 		return ErrUnknownEvent
 	}
 
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
 	data, isExist := s.data[event.GetID()]
 	if !isExist {
 		return ErrNotExist
@@ -110,6 +121,9 @@ func (s *MemoryStorage) Update(event domain.Event) error {
 
 // Listing - get all events from MemoryStorage
 func (s *MemoryStorage) Listing() ([]domain.Event, error) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
 	events := make([]domain.Event, 0, len(s.data))
 
 	for id, data := range s.data {

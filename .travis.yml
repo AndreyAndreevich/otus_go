@@ -59,3 +59,8 @@ jobs:
         - go vet ./...
         - go test ./...
         - go build cmd/main.go
+
+    - stage: build
+      script:
+        - cd hw10
+        - *common_script

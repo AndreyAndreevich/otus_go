@@ -28,8 +28,8 @@ func New(logger *zap.Logger, storage domain.Storage, delivery domain.Delivery) *
 func (c *Calendar) Run() error {
 	c.logger.Info("I'm the best of calendars")
 
-	c.delivery.AddHandler("/hello", func(data domain.EventData) (string, error) {
-		c.logger.Info("request", zap.String("data", string(data)))
+	c.delivery.AddHandler("/hello", func(data *domain.Event) (string, error) {
+		c.logger.Info("request", zap.Reflect("data", data))
 		return "world", nil
 	})
 

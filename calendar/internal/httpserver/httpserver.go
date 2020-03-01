@@ -35,7 +35,9 @@ func (s *HTTPServer) AddHandler(pattern string, handler domain.Handler) {
 			return
 		}
 
-		response, err := handler(domain.EventData(data))
+		response, err := handler(&domain.Event{
+			Heading: string(data),
+		})
 		if err != nil {
 			s.logger.Error("error handle request", zap.Error(err))
 			writer.WriteHeader(400)

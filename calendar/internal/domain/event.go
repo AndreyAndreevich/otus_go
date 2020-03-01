@@ -1,14 +1,20 @@
 package domain
 
-// EventID is id of events
-type EventID uint64
+import (
+	"time"
 
-// EventData is data from events
-type EventData string
+	"github.com/google/uuid"
+)
+
+// EventID is id of events
+type EventID uuid.UUID
 
 // Event is base interface of events
-type Event interface {
-	GetID() EventID
-	SetID(id EventID)
-	GetData() EventData
+type Event struct {
+	Id          EventID
+	Heading     string
+	DateTime    time.Time
+	Duration    time.Duration
+	Description string
+	Owner       string
 }

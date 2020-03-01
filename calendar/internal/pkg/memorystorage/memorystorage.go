@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/simpleevent"
+	"github.com/google/uuid"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 )
@@ -28,93 +28,64 @@ var (
 	ErrNotExist = errors.New("event is not exist")
 )
 
-type eventData struct {
-	eventType EventType
-	eventData domain.EventData
-}
-
 // MemoryStorage - event's storage in memory
 type MemoryStorage struct {
 	mtx  sync.Mutex
-	data map[domain.EventID]eventData
+	data map[domain.EventID]domain.Event
 }
 
 // New create new MemoryStorage
 func New() *MemoryStorage {
 	return &MemoryStorage{
-		data: make(map[domain.EventID]eventData),
+		data: make(map[domain.EventID]domain.Event),
 	}
 }
 
 // Insert event into MemoryStorage
 func (s *MemoryStorage) Insert(event domain.Event) error {
-	eventType := checkEventType(event)
-	if eventType == UnknownEvent {
-		return ErrUnknownEvent
-	}
-
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	if event.GetID() == 0 {
-		nextID := domain.EventID(1)
-		for id := range s.data {
-			if id >= nextID {
-				nextID = id + 1
-			}
-		}
-		event.SetID(nextID)
+	if event.Id == domain.EventID(uuid.Nil) {
+		event.Id = domain.EventID(uuid.New())
 	} else {
-		_, isExist := s.data[event.GetID()]
+		_, isExist := s.data[event.Id]
 		if isExist {
 			return ErrDuplicateEventID
 		}
 	}
 
-	s.data[event.GetID()] = eventData{eventType, event.GetData()}
+	s.data[event.Id] = event
 
 	return nil
 }
 
 // Remove event from MemoryStorage
 func (s *MemoryStorage) Remove(event domain.Event) error {
-	eventType := checkEventType(event)
-	if eventType == UnknownEvent {
-		return ErrUnknownEvent
-	}
-
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	_, isExist := s.data[event.GetID()]
+	_, isExist := s.data[event.Id]
 	if !isExist {
 		return ErrNotExist
 	}
 
-	delete(s.data, event.GetID())
+	delete(s.data, event.Id)
 
 	return nil
 }
 
 // Update event in MemoryStorage
 func (s *MemoryStorage) Update(event domain.Event) error {
-	eventType := checkEventType(event)
-	if eventType == UnknownEvent {
-		return ErrUnknownEvent
-	}
-
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	data, isExist := s.data[event.GetID()]
+	_, isExist := s.data[event.Id]
 	if !isExist {
 		return ErrNotExist
 	}
 
-	data.eventType = eventType
-	data.eventData = event.GetData()
-
-	s.data[event.GetID()] = data
+	s.data[event.Id] = event
 
 	return nil
 }
@@ -126,26 +97,9 @@ func (s *MemoryStorage) Listing() ([]domain.Event, error) {
 
 	events := make([]domain.Event, 0, len(s.data))
 
-	for id, data := range s.data {
-		var event domain.Event
-
-		switch data.eventType {
-		case SimpleEventType:
-			event = simpleevent.New(id, data.eventData)
-		default:
-			continue
-		}
+	for _, event := range s.data {
 		events = append(events, event)
 	}
 
 	return events, nil
-}
-
-func checkEventType(event domain.Event) EventType {
-	switch event.(type) {
-	case *simpleevent.SimpleEvent:
-		return SimpleEventType
-	default:
-		return UnknownEvent
-	}
 }

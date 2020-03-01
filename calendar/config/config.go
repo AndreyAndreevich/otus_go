@@ -15,7 +15,7 @@ type HTTPListenConfig struct {
 	Port int    `json:"port"`
 }
 
-// gRPC config
+// GRPCConfig config
 type GRPCConfig struct {
 	IP   string `json:"ip"`
 	Port int    `json:"port"`

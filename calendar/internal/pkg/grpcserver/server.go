@@ -10,11 +10,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// GRPCServer is gRPC server
 type GRPCServer struct {
 	logger *zap.Logger
 	addr   string
 }
 
+// New created new GRPCServer
 func New(logger *zap.Logger, ip string, port int) *GRPCServer {
 	return &GRPCServer{
 		logger: logger,
@@ -22,6 +24,7 @@ func New(logger *zap.Logger, ip string, port int) *GRPCServer {
 	}
 }
 
+// Run GRPCServer
 func (s *GRPCServer) Run() error {
 	s.logger.Debug("gRPC server starting")
 

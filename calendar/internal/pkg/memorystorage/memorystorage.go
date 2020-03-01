@@ -46,16 +46,16 @@ func (s *MemoryStorage) Insert(event domain.Event) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	if event.Id == domain.EventID(uuid.Nil) {
-		event.Id = domain.EventID(uuid.New())
+	if event.ID == domain.EventID(uuid.Nil) {
+		event.ID = domain.EventID(uuid.New())
 	} else {
-		_, isExist := s.data[event.Id]
+		_, isExist := s.data[event.ID]
 		if isExist {
 			return ErrDuplicateEventID
 		}
 	}
 
-	s.data[event.Id] = event
+	s.data[event.ID] = event
 
 	return nil
 }
@@ -65,12 +65,12 @@ func (s *MemoryStorage) Remove(event domain.Event) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	_, isExist := s.data[event.Id]
+	_, isExist := s.data[event.ID]
 	if !isExist {
 		return ErrNotExist
 	}
 
-	delete(s.data, event.Id)
+	delete(s.data, event.ID)
 
 	return nil
 }
@@ -80,12 +80,12 @@ func (s *MemoryStorage) Update(event domain.Event) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	_, isExist := s.data[event.Id]
+	_, isExist := s.data[event.ID]
 	if !isExist {
 		return ErrNotExist
 	}
 
-	s.data[event.Id] = event
+	s.data[event.ID] = event
 
 	return nil
 }

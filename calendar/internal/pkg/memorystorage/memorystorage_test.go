@@ -12,7 +12,7 @@ import (
 func TestMemoryStorage_InsertDuplicate(t *testing.T) {
 	storage := New()
 
-	event := domain.Event{Id: domain.EventID(uuid.New())}
+	event := domain.Event{ID: domain.EventID(uuid.New())}
 
 	err := storage.Insert(event)
 	assert.NoError(t, err)
@@ -31,8 +31,8 @@ func TestMemoryStorage_ListingEmpty(t *testing.T) {
 
 func TestMemoryStorage_Listing(t *testing.T) {
 	storage := New()
-	storage.Insert(domain.Event{Id: domain.EventID(uuid.New())})
-	storage.Insert(domain.Event{Id: domain.EventID(uuid.New())})
+	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
+	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
 
 	events, err := storage.Listing()
 	assert.NoError(t, err)
@@ -49,22 +49,22 @@ func TestMemoryStorage_InsertWithZeroId(t *testing.T) {
 	events, err := storage.Listing()
 	assert.NoError(t, err)
 	assert.Len(t, events, 2)
-	assert.NotEqual(t, events[0].Id, events[1].Id)
+	assert.NotEqual(t, events[0].ID, events[1].ID)
 }
 
 func TestMemoryStorage_RemoveEmptyStorage(t *testing.T) {
 	storage := New()
-	err := storage.Remove(domain.Event{Id: domain.EventID(uuid.New())})
+	err := storage.Remove(domain.Event{ID: domain.EventID(uuid.New())})
 	assert.Error(t, err)
 	assert.Equal(t, ErrNotExist, err)
 }
 
 func TestMemoryStorage_RemoveIncorrectId(t *testing.T) {
 	storage := New()
-	storage.Insert(domain.Event{Id: domain.EventID(uuid.New())})
-	storage.Insert(domain.Event{Id: domain.EventID(uuid.New())})
+	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
+	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
 
-	err := storage.Remove(domain.Event{Id: domain.EventID(uuid.New())})
+	err := storage.Remove(domain.Event{ID: domain.EventID(uuid.New())})
 	assert.Error(t, err)
 	assert.Equal(t, ErrNotExist, err)
 }
@@ -72,10 +72,10 @@ func TestMemoryStorage_RemoveIncorrectId(t *testing.T) {
 func TestMemoryStorage_Remove(t *testing.T) {
 	storage := New()
 
-	event := domain.Event{Id: domain.EventID(uuid.New())}
+	event := domain.Event{ID: domain.EventID(uuid.New())}
 
 	storage.Insert(event)
-	storage.Insert(domain.Event{Id: domain.EventID(uuid.New())})
+	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
 
 	err := storage.Remove(event)
 	assert.NoError(t, err)
@@ -86,9 +86,9 @@ func TestMemoryStorage_Remove(t *testing.T) {
 
 func TestMemoryStorage_UpdateIncorrectId(t *testing.T) {
 	storage := New()
-	storage.Insert(domain.Event{Id: domain.EventID(uuid.New())})
+	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
 
-	err := storage.Update(domain.Event{Id: domain.EventID(uuid.New())})
+	err := storage.Update(domain.Event{ID: domain.EventID(uuid.New())})
 	assert.Error(t, err)
 	assert.Equal(t, ErrNotExist, err)
 }
@@ -96,11 +96,11 @@ func TestMemoryStorage_UpdateIncorrectId(t *testing.T) {
 func TestMemoryStorage_Update(t *testing.T) {
 	storage := New()
 
-	event := domain.Event{Id: domain.EventID(uuid.New())}
+	event := domain.Event{ID: domain.EventID(uuid.New())}
 
 	storage.Insert(event)
 
-	err := storage.Update(domain.Event{Id: event.Id, Description: "new_data"})
+	err := storage.Update(domain.Event{ID: event.ID, Description: "new_data"})
 	assert.NoError(t, err)
 
 	events, _ := storage.Listing()

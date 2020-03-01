@@ -11,7 +11,7 @@ type EventID uuid.UUID
 
 // Event is base interface of events
 type Event struct {
-	Id          EventID
+	ID          EventID
 	Heading     string
 	DateTime    time.Time
 	Duration    time.Duration

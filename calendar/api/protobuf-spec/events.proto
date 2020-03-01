@@ -32,7 +32,7 @@ message CreateRequest {
 }
 
 message UpdateRequest {
-    string uuid = 1;
+    //string uuid = 1; I don't understand why
     Event event = 2;
 }
 

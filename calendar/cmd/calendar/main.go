@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/httpserver"
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/grpcserver"
+
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/httpserver"
 
 	"go.uber.org/zap"
 
@@ -45,7 +47,8 @@ func main() {
 
 	storage := memorystorage.New()
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
-	currentCalendar := calendar.New(logger, storage, eventsDelivery)
+	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port)
+	currentCalendar := calendar.New(logger, storage, eventsDelivery, gRPCServer)
 
 	if err := currentCalendar.Run(); err != nil {
 		logger.Fatal("error calendar run", zap.Error(err))

@@ -54,5 +54,6 @@ func (s *HTTPServer) AddHandler(pattern string, handler domain.Handler) {
 
 // Run server (blocked)
 func (s *HTTPServer) Run() error {
+	s.logger.Debug("http server starting")
 	return http.ListenAndServe(s.addr, nil)
 }

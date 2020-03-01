@@ -10,17 +10,19 @@ import (
 
 // Calendar is main struct in program
 type Calendar struct {
-	logger   *zap.Logger
-	storage  domain.Storage
-	delivery domain.Delivery
+	logger     *zap.Logger
+	storage    domain.Storage
+	delivery   domain.Delivery
+	gRPCServer domain.GRPCServer
 }
 
 // New create new calendar
-func New(logger *zap.Logger, storage domain.Storage, delivery domain.Delivery) *Calendar {
+func New(logger *zap.Logger, storage domain.Storage, delivery domain.Delivery, gRPCServer domain.GRPCServer) *Calendar {
 	return &Calendar{
-		logger:   logger,
-		storage:  storage,
-		delivery: delivery,
+		logger:     logger,
+		storage:    storage,
+		delivery:   delivery,
+		gRPCServer: gRPCServer,
 	}
 }
 
@@ -41,6 +43,15 @@ func (c *Calendar) Run() error {
 		err := c.delivery.Run()
 		if err != nil {
 			c.logger.Error("delivery run error", zap.Error(err))
+		}
+	}()
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+		err := c.gRPCServer.Run()
+		if err != nil {
+			c.logger.Error("gRPC server run error", zap.Error(err))
 		}
 	}()
 

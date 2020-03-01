@@ -2,6 +2,6 @@
 
 cd api/protobuf-spec
 
-protoc ./events.proto --go_out=plugins=grpc:../../internal/pkg/grpcclient
+protoc ./events.proto --go_out=plugins=grpc:../../internal/pkg/events
 
 cd -

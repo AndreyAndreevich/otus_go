@@ -54,7 +54,7 @@ func TestMemoryStorage_InsertWithZeroId(t *testing.T) {
 
 func TestMemoryStorage_RemoveEmptyStorage(t *testing.T) {
 	storage := New()
-	err := storage.Remove(domain.Event{ID: domain.EventID(uuid.New())})
+	err := storage.Remove(domain.EventID(uuid.New()))
 	assert.Error(t, err)
 	assert.Equal(t, ErrNotExist, err)
 }
@@ -64,7 +64,7 @@ func TestMemoryStorage_RemoveIncorrectId(t *testing.T) {
 	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
 	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
 
-	err := storage.Remove(domain.Event{ID: domain.EventID(uuid.New())})
+	err := storage.Remove(domain.EventID(uuid.New()))
 	assert.Error(t, err)
 	assert.Equal(t, ErrNotExist, err)
 }
@@ -77,7 +77,7 @@ func TestMemoryStorage_Remove(t *testing.T) {
 	storage.Insert(event)
 	storage.Insert(domain.Event{ID: domain.EventID(uuid.New())})
 
-	err := storage.Remove(event)
+	err := storage.Remove(event.ID)
 	assert.NoError(t, err)
 
 	events, _ := storage.Listing()

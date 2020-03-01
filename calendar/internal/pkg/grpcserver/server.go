@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
+
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/events"
 	"google.golang.org/grpc"
 
@@ -12,15 +14,17 @@ import (
 
 // GRPCServer is gRPC server
 type GRPCServer struct {
-	logger *zap.Logger
-	addr   string
+	logger  *zap.Logger
+	addr    string
+	storage domain.Storage
 }
 
 // New created new GRPCServer
-func New(logger *zap.Logger, ip string, port int) *GRPCServer {
+func New(logger *zap.Logger, ip string, port int, storage domain.Storage) *GRPCServer {
 	return &GRPCServer{
-		logger: logger,
-		addr:   fmt.Sprintf("%s:%d", ip, port),
+		logger:  logger,
+		addr:    fmt.Sprintf("%s:%d", ip, port),
+		storage: storage,
 	}
 }
 
@@ -35,6 +39,9 @@ func (s *GRPCServer) Run() error {
 	}
 
 	server := grpc.NewServer()
-	events.RegisterGRPCServer(server, &Handler{})
+	events.RegisterGRPCServer(server, &handler{
+		logger:  s.logger,
+		storage: s.storage,
+	})
 	return server.Serve(lis)
 }

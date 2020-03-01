@@ -61,16 +61,16 @@ func (s *MemoryStorage) Insert(event domain.Event) error {
 }
 
 // Remove event from MemoryStorage
-func (s *MemoryStorage) Remove(event domain.Event) error {
+func (s *MemoryStorage) Remove(id domain.EventID) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	_, isExist := s.data[event.ID]
+	_, isExist := s.data[id]
 	if !isExist {
 		return ErrNotExist
 	}
 
-	delete(s.data, event.ID)
+	delete(s.data, id)
 
 	return nil
 }

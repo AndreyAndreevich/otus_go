@@ -47,7 +47,7 @@ func main() {
 
 	storage := memorystorage.New()
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
-	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port)
+	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, storage)
 	currentCalendar := calendar.New(logger, storage, eventsDelivery, gRPCServer)
 
 	if err := currentCalendar.Run(); err != nil {

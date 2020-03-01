@@ -14,8 +14,8 @@ message Event {
 }
 
 enum ErrorCode {
-    OK =    0;
-    ERROR = 1;
+    OK      = 0;
+    ERROR   = 1;
 }
 
 message Response {

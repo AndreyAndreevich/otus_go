@@ -1,6 +1,7 @@
 package calendar
 
 import (
+	"context"
 	"sync"
 
 	"go.uber.org/zap"
@@ -37,21 +38,25 @@ func (c *Calendar) Run() error {
 
 	waitGroup := sync.WaitGroup{}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		err := c.delivery.Run()
+		err := c.delivery.Run(ctx)
 		if err != nil {
 			c.logger.Error("delivery run error", zap.Error(err))
+			cancel()
 		}
 	}()
 
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		err := c.gRPCServer.Run()
+		err := c.gRPCServer.Run(ctx)
 		if err != nil {
 			c.logger.Error("gRPC server run error", zap.Error(err))
+			cancel()
 		}
 	}()
 

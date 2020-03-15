@@ -1,6 +1,8 @@
 package domain
 
+import "context"
+
 // GRPCServer is interface of gRPC server
 type GRPCServer interface {
-	Run() error
+	Run(ctx context.Context) error
 }

@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 
@@ -53,7 +54,18 @@ func (s *HTTPServer) AddHandler(pattern string, handler domain.Handler) {
 }
 
 // Run server (blocked)
-func (s *HTTPServer) Run() error {
+func (s *HTTPServer) Run(ctx context.Context) error {
 	s.logger.Debug("http server starting")
-	return http.ListenAndServe(s.addr, nil)
+
+	srv := &http.Server{Addr: s.addr}
+
+	go func(ctx context.Context, server *http.Server) {
+		<-ctx.Done()
+		err := srv.Shutdown(ctx)
+		if err != nil {
+			s.logger.Error("http cannot stopping", zap.Error(err))
+		}
+	}(ctx, srv)
+
+	return srv.ListenAndServe()
 }

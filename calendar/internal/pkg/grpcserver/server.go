@@ -1,6 +1,7 @@
 package grpcserver
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -29,7 +30,7 @@ func New(logger *zap.Logger, ip string, port int, storage domain.Storage) *GRPCS
 }
 
 // Run GRPCServer
-func (s *GRPCServer) Run() error {
+func (s *GRPCServer) Run(ctx context.Context) error {
 	s.logger.Debug("gRPC server starting")
 
 	lis, err := net.Listen("tcp", s.addr)
@@ -43,5 +44,11 @@ func (s *GRPCServer) Run() error {
 		logger:  s.logger,
 		storage: s.storage,
 	})
+
+	go func(ctx context.Context, srv *grpc.Server) {
+		<-ctx.Done()
+		server.GracefulStop()
+	}(ctx, server)
+
 	return server.Serve(lis)
 }

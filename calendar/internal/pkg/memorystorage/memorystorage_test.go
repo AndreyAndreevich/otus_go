@@ -2,12 +2,15 @@ package memorystorage
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 	"github.com/stretchr/testify/assert"
 )
+
+const testLayout = "2006-01-02"
 
 func TestMemoryStorage_InsertDuplicate(t *testing.T) {
 	storage := New()
@@ -106,4 +109,57 @@ func TestMemoryStorage_Update(t *testing.T) {
 	events, _ := storage.Listing()
 	assert.Len(t, events, 1)
 	assert.Equal(t, "new_data", events[0].Description)
+}
+
+func TestMemoryStorage_GetEventsInTime(t *testing.T) {
+	storage := New()
+
+	getTime := func(date string) time.Time {
+		res, _ := time.Parse(testLayout, date)
+		return res
+	}
+
+	events := []domain.Event{
+		{
+			ID:       domain.EventID(uuid.New()),
+			DateTime: getTime("2020-01-05"),
+		},
+		{
+			ID:       domain.EventID(uuid.New()),
+			DateTime: getTime("2020-01-10"),
+		},
+		{
+			ID:       domain.EventID(uuid.New()),
+			DateTime: getTime("2020-02-08"),
+		},
+	}
+
+	for _, event := range events {
+		storage.Insert(event)
+	}
+
+	result, err := storage.GetEventsInTime(getTime("2020-03-10"), time.Duration(time.Hour*24*10))
+
+	assert.NoError(t, err)
+	assert.Empty(t, result)
+
+	result, err = storage.GetEventsInTime(getTime("2020-01-05"), time.Duration(time.Hour*24*40))
+
+	assert.NoError(t, err)
+	assert.Len(t, result, 3)
+
+	result, err = storage.GetEventsInTime(getTime("2020-01-06"), time.Duration(time.Hour*24*40))
+
+	assert.NoError(t, err)
+	assert.Len(t, result, 2)
+
+	result, err = storage.GetEventsInTime(getTime("2020-01-09"), time.Duration(time.Hour*24*1))
+
+	assert.NoError(t, err)
+	assert.Len(t, result, 1)
+
+	result, err = storage.GetEventsInTime(getTime("2020-01-07"), time.Duration(time.Hour*24*1))
+
+	assert.NoError(t, err)
+	assert.Empty(t, result)
 }

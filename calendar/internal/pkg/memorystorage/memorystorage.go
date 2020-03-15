@@ -3,6 +3,7 @@ package memorystorage
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -102,4 +103,18 @@ func (s *MemoryStorage) Listing() ([]domain.Event, error) {
 	}
 
 	return events, nil
+}
+
+// GetEventsInTime - get all events in time for duration
+func (s *MemoryStorage) GetEventsInTime(time time.Time, duration time.Duration) ([]domain.Event, error) {
+	endTime := time.Add(duration)
+
+	result := []domain.Event{}
+	for _, event := range s.data {
+		if (event.DateTime.After(time) || event.DateTime.Equal(time)) &&
+			(event.DateTime.Before(endTime) || event.DateTime.Equal(endTime)) {
+			result = append(result, event)
+		}
+	}
+	return result, nil
 }

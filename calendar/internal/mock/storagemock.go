@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"time"
+
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 	"github.com/stretchr/testify/mock"
 )
@@ -31,5 +33,10 @@ func (s *StorageMock) Update(event domain.Event) error {
 // Listing as storage
 func (s *StorageMock) Listing() ([]domain.Event, error) {
 	args := s.Called()
+	return args.Get(0).([]domain.Event), args.Error(1)
+}
+
+func (s *StorageMock) GetEventsInTime(time time.Time, duration time.Duration) ([]domain.Event, error) {
+	args := s.Called(time, duration)
 	return args.Get(0).([]domain.Event), args.Error(1)
 }

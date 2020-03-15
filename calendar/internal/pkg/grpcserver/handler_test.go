@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/golang/protobuf/ptypes/duration"
 
@@ -24,6 +25,8 @@ import (
 
 	storagemock "github.com/AndreyAndreevich/otus_go/calendar/internal/mock"
 )
+
+const testLayout = "2006-01-02"
 
 var errTest = errors.New("test error")
 
@@ -116,4 +119,22 @@ func TestHandler_Remove(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, events.ErrorCode_OK, res.Error)
+}
+
+func TestHandler_DailyEventList(t *testing.T) {
+	handler, storage := createHandler()
+
+	day, _ := time.Parse(testLayout, "2020-02-12")
+
+	req := &events.DataRequest{
+		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
+	}
+
+	storage.On("GetEvents", mock.Anything).Return(nil)
+
+	res, err := handler.Remove(context.Background(), req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, events.ErrorCode_OK, res.Error)
+
 }

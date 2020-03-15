@@ -6,13 +6,13 @@ import (
 	"log"
 	"os"
 
+	config2 "github.com/AndreyAndreevich/otus_go/calendar/internal/config"
+
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/grpcserver"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/httpserver"
 
 	"go.uber.org/zap"
-
-	"github.com/AndreyAndreevich/otus_go/calendar/config"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/calendar"
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/memorystorage"
@@ -34,7 +34,7 @@ func main() {
 
 	decoder := json.NewDecoder(file)
 
-	var cfg config.Config
+	var cfg config2.Config
 	err = decoder.Decode(&cfg)
 	if err != nil {
 		log.Fatal(err)

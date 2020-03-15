@@ -36,6 +36,7 @@ func (s *StorageMock) Listing() ([]domain.Event, error) {
 	return args.Get(0).([]domain.Event), args.Error(1)
 }
 
+// GetEventsInTime as storage
 func (s *StorageMock) GetEventsInTime(time time.Time, duration time.Duration) ([]domain.Event, error) {
 	args := s.Called(time, duration)
 	return args.Get(0).([]domain.Event), args.Error(1)

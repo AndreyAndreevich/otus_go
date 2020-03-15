@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
+
 	"github.com/golang/protobuf/ptypes/duration"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -121,6 +123,30 @@ func TestHandler_Remove(t *testing.T) {
 	assert.Equal(t, events.ErrorCode_OK, res.Error)
 }
 
+func TestHandler_GetEventList_Error(t *testing.T) {
+	handler, storage := createHandler()
+
+	day, _ := time.Parse(testLayout, "2020-02-12")
+
+	req := &events.DataRequest{
+		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
+	}
+
+	storage.On("GetEventsInTime", mock.Anything, mock.Anything).Return([]domain.Event{}, errTest)
+
+	_, err := handler.DailyEventList(context.Background(), req)
+
+	assert.Error(t, err)
+
+	_, err = handler.WeeklyEventList(context.Background(), req)
+
+	assert.Error(t, err)
+
+	_, err = handler.MonthlyEventList(context.Background(), req)
+
+	assert.Error(t, err)
+}
+
 func TestHandler_DailyEventList(t *testing.T) {
 	handler, storage := createHandler()
 
@@ -130,11 +156,56 @@ func TestHandler_DailyEventList(t *testing.T) {
 		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
 	}
 
-	storage.On("GetEvents", mock.Anything).Return(nil)
+	storage.On("GetEventsInTime", day, time.Duration(time.Hour*24)).Return([]domain.Event{
+		{},
+		{},
+	}, nil)
 
-	res, err := handler.Remove(context.Background(), req)
+	res, err := handler.DailyEventList(context.Background(), req)
 
 	assert.NoError(t, err)
+	assert.Len(t, res.Events, 2)
 	assert.Equal(t, events.ErrorCode_OK, res.Error)
+}
 
+func TestHandler_WeeklyEventList(t *testing.T) {
+	handler, storage := createHandler()
+
+	day, _ := time.Parse(testLayout, "2020-02-12")
+
+	req := &events.DataRequest{
+		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
+	}
+
+	storage.On("GetEventsInTime", day, time.Duration(time.Hour*24*7)).Return([]domain.Event{
+		{},
+		{},
+	}, nil)
+
+	res, err := handler.WeeklyEventList(context.Background(), req)
+
+	assert.NoError(t, err)
+	assert.Len(t, res.Events, 2)
+	assert.Equal(t, events.ErrorCode_OK, res.Error)
+}
+
+func TestHandler_MonthlyEventList(t *testing.T) {
+	handler, storage := createHandler()
+
+	day, _ := time.Parse(testLayout, "2020-01-12")
+
+	req := &events.DataRequest{
+		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
+	}
+
+	storage.On("GetEventsInTime", day, time.Duration(time.Hour*24*31)).Return([]domain.Event{
+		{},
+		{},
+	}, nil)
+
+	res, err := handler.MonthlyEventList(context.Background(), req)
+
+	assert.NoError(t, err)
+	assert.Len(t, res.Events, 2)
+	assert.Equal(t, events.ErrorCode_OK, res.Error)
 }

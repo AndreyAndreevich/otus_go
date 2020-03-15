@@ -2,7 +2,9 @@ package grpcserver
 
 import (
 	"context"
-	"fmt"
+	"time"
+
+	"github.com/golang/protobuf/ptypes/timestamp"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -94,20 +96,60 @@ func (h *handler) Remove(ctx context.Context, req *events.RemoveRequest) (*event
 
 // DailyEventList get daily events
 func (h *handler) DailyEventList(ctx context.Context, req *events.DataRequest) (*events.EventsResponse, error) {
-	fmt.Println(req)
-	return nil, nil
+	duration := time.Duration(time.Hour * 24)
+	result, err := h.getEventsInTime(req.GetDateTime(), duration)
+	if err != nil {
+		return nil, err
+	}
+
+	return &events.EventsResponse{
+		Error:  events.ErrorCode_OK,
+		Events: result,
+	}, nil
 }
 
 // WeeklyEventList get weekly events
 func (h *handler) WeeklyEventList(ctx context.Context, req *events.DataRequest) (*events.EventsResponse, error) {
-	fmt.Println(req)
-	return nil, nil
+	duration := time.Duration(time.Hour * 24 * 7)
+	result, err := h.getEventsInTime(req.GetDateTime(), duration)
+	if err != nil {
+		return nil, err
+	}
+
+	return &events.EventsResponse{
+		Error:  events.ErrorCode_OK,
+		Events: result,
+	}, nil
 }
 
 // MonthlyEventList get monthly events
 func (h *handler) MonthlyEventList(ctx context.Context, req *events.DataRequest) (*events.EventsResponse, error) {
-	fmt.Println(req)
-	return nil, nil
+	dateTime, err := ptypes.Timestamp(req.GetDateTime())
+	if err != nil {
+		h.logger.Error("parse timestamp error", zap.Error(err))
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			err.Error(),
+		)
+	}
+
+	currentYear, currentMonth, _ := dateTime.Date()
+	currentLocation := dateTime.Location()
+
+	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+	firstOfMonthNextMonth := firstOfMonth.AddDate(0, 1, 0)
+
+	duration := firstOfMonthNextMonth.Sub(firstOfMonth)
+
+	result, err := h.getEventsInTime(req.GetDateTime(), duration)
+	if err != nil {
+		return nil, err
+	}
+
+	return &events.EventsResponse{
+		Error:  events.ErrorCode_OK,
+		Events: result,
+	}, nil
 }
 
 func protoToEvent(protoEvent *events.Event) (*domain.Event, error) {
@@ -141,6 +183,42 @@ func protoToEvent(protoEvent *events.Event) (*domain.Event, error) {
 	return event, nil
 }
 
-func eventToProto(protoEvent domain.Event) events.Event {
-	return events.Event{}
+func (h *handler) getEventsInTime(time *timestamp.Timestamp, duration time.Duration) ([]*events.Event, error) {
+	dateTime, err := ptypes.Timestamp(time)
+	if err != nil {
+		h.logger.Error("parse timestamp error", zap.Error(err))
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			err.Error(),
+		)
+	}
+
+	domEvents, err := h.storage.GetEventsInTime(dateTime, duration)
+	if err != nil {
+		h.logger.Error("get events in time from storage error", zap.Error(err))
+		return nil, status.Errorf(
+			codes.Internal,
+			err.Error(),
+		)
+	}
+
+	result := []*events.Event{}
+	for _, event := range domEvents {
+		dateTime, err := ptypes.TimestampProto(event.DateTime)
+		if err != nil {
+			h.logger.Warn("incorrect datetime from event", zap.Reflect("event", event))
+			continue
+		}
+
+		result = append(result, &events.Event{
+			Uuid:        uuid.UUID(event.ID).String(),
+			Heading:     event.Heading,
+			DateTime:    dateTime,
+			Duration:    ptypes.DurationProto(event.Duration),
+			Description: event.Description,
+			Owner:       event.Owner,
+		})
+	}
+
+	return result, nil
 }

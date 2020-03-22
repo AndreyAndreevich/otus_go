@@ -3,6 +3,8 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 
+package events;
+
 message Event {
     string uuid                         = 1;
     string heading                      = 2;

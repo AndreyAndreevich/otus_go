@@ -36,7 +36,7 @@ func (h *handler) Create(ctx context.Context, req *events.CreateRequest) (*event
 		)
 	}
 
-	err = h.storage.Insert(*event)
+	err = h.storage.Insert(ctx, *event)
 	if err != nil {
 		h.logger.Error("insert to storage error", zap.Error(err))
 		return nil, status.Errorf(
@@ -59,7 +59,7 @@ func (h *handler) Update(ctx context.Context, req *events.UpdateRequest) (*event
 		)
 	}
 
-	err = h.storage.Update(*event)
+	err = h.storage.Update(ctx, *event)
 	if err != nil {
 		h.logger.Error("update to storage error", zap.Error(err))
 		return nil, status.Errorf(
@@ -82,7 +82,7 @@ func (h *handler) Remove(ctx context.Context, req *events.RemoveRequest) (*event
 		)
 	}
 
-	err = h.storage.Remove(domain.EventID(id))
+	err = h.storage.Remove(ctx, domain.EventID(id))
 	if err != nil {
 		h.logger.Error("remove from storage error", zap.Error(err))
 		return nil, status.Errorf(
@@ -97,7 +97,7 @@ func (h *handler) Remove(ctx context.Context, req *events.RemoveRequest) (*event
 // DailyEventList get daily events
 func (h *handler) DailyEventList(ctx context.Context, req *events.DataRequest) (*events.EventsResponse, error) {
 	duration := time.Duration(time.Hour * 24)
-	result, err := h.getEventsInTime(req.GetDateTime(), duration)
+	result, err := h.getEventsInTime(ctx, req.GetDateTime(), duration)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (h *handler) DailyEventList(ctx context.Context, req *events.DataRequest) (
 // WeeklyEventList get weekly events
 func (h *handler) WeeklyEventList(ctx context.Context, req *events.DataRequest) (*events.EventsResponse, error) {
 	duration := time.Duration(time.Hour * 24 * 7)
-	result, err := h.getEventsInTime(req.GetDateTime(), duration)
+	result, err := h.getEventsInTime(ctx, req.GetDateTime(), duration)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (h *handler) MonthlyEventList(ctx context.Context, req *events.DataRequest)
 
 	duration := firstOfMonthNextMonth.Sub(firstOfMonth)
 
-	result, err := h.getEventsInTime(req.GetDateTime(), duration)
+	result, err := h.getEventsInTime(ctx, req.GetDateTime(), duration)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,10 @@ func protoToEvent(protoEvent *events.Event) (*domain.Event, error) {
 	return event, nil
 }
 
-func (h *handler) getEventsInTime(time *timestamp.Timestamp, duration time.Duration) ([]*events.Event, error) {
+func (h *handler) getEventsInTime(ctx context.Context,
+	time *timestamp.Timestamp,
+	duration time.Duration) ([]*events.Event, error) {
+
 	dateTime, err := ptypes.Timestamp(time)
 	if err != nil {
 		h.logger.Error("parse timestamp error", zap.Error(err))
@@ -193,7 +196,7 @@ func (h *handler) getEventsInTime(time *timestamp.Timestamp, duration time.Durat
 		)
 	}
 
-	domEvents, err := h.storage.GetEventsInTime(dateTime, duration)
+	domEvents, err := h.storage.GetEventsInTime(ctx, dateTime, duration)
 	if err != nil {
 		h.logger.Error("get events in time from storage error", zap.Error(err))
 		return nil, status.Errorf(

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 
+	"google.golang.org/grpc/reflection"
+
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/events"
@@ -40,6 +42,7 @@ func (s *GRPCServer) Run(ctx context.Context) error {
 	}
 
 	server := grpc.NewServer()
+	reflection.Register(server) // for evans
 	events.RegisterGRPCServer(server, &handler{
 		logger:  s.logger,
 		storage: s.storage,

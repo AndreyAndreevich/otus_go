@@ -6,7 +6,13 @@ import (
 	"log"
 	"os"
 
-	config2 "github.com/AndreyAndreevich/otus_go/calendar/internal/config"
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/sqlxstorage"
+
+	"github.com/jmoiron/sqlx"
+
+	_ "github.com/lib/pq"
+
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/config"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/grpcserver"
 
@@ -15,7 +21,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/calendar"
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/memorystorage"
 )
 
 func main() {
@@ -34,7 +39,7 @@ func main() {
 
 	decoder := json.NewDecoder(file)
 
-	var cfg config2.Config
+	var cfg config.Config
 	err = decoder.Decode(&cfg)
 	if err != nil {
 		log.Fatal(err)
@@ -45,7 +50,26 @@ func main() {
 		log.Fatal(err)
 	}
 
-	storage := memorystorage.New()
+	db, err := sqlx.Open("postgres", cfg.DB.DSN)
+	if err != nil {
+		logger.Error("connect to db error", zap.Error(err))
+		return
+	}
+	db.SetMaxOpenConns(cfg.DB.MaxConnections)
+	db.SetMaxIdleConns(cfg.DB.MaxConnections)
+
+	defer db.Close()
+
+	if err = db.Ping(); err != nil {
+		logger.Fatal("ping to db error", zap.Error(err))
+		return
+	}
+
+	storage := sqlxstorage.New(logger, db)
+	if err := storage.Migrate("postgres"); err != nil {
+		logger.Fatal("migrate error", zap.Error(err))
+	}
+
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
 	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, storage)
 	currentCalendar := calendar.New(logger, storage, eventsDelivery, gRPCServer)

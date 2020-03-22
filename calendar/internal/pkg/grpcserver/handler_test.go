@@ -25,15 +25,15 @@ import (
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/events"
 
-	storagemock "github.com/AndreyAndreevich/otus_go/calendar/internal/mock"
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/mocks"
 )
 
 const testLayout = "2006-01-02"
 
 var errTest = errors.New("test error")
 
-func createHandler() (*handler, *storagemock.StorageMock) {
-	storage := &storagemock.StorageMock{}
+func createHandler() (*handler, *mocks.Storage) {
+	storage := &mocks.Storage{}
 	return &handler{
 		logger:  zap.NewNop(),
 		storage: storage,
@@ -52,7 +52,7 @@ func TestHandler_CreateError(t *testing.T) {
 	handler, storage := createHandler()
 
 	req := &events.CreateRequest{Event: createEvent()}
-	storage.On("Insert", mock.Anything).Return(errTest)
+	storage.On("Insert", mock.Anything, mock.Anything).Return(errTest)
 
 	res, err := handler.Create(context.Background(), req)
 
@@ -65,7 +65,7 @@ func TestHandler_Create(t *testing.T) {
 	handler, storage := createHandler()
 
 	req := &events.CreateRequest{Event: createEvent()}
-	storage.On("Insert", mock.Anything).Return(nil)
+	storage.On("Insert", mock.Anything, mock.Anything).Return(nil)
 
 	res, err := handler.Create(context.Background(), req)
 
@@ -77,7 +77,7 @@ func TestHandler_UpdateError(t *testing.T) {
 	handler, storage := createHandler()
 
 	req := &events.UpdateRequest{Event: createEvent()}
-	storage.On("Update", mock.Anything).Return(errTest)
+	storage.On("Update", mock.Anything, mock.Anything).Return(errTest)
 
 	res, err := handler.Update(context.Background(), req)
 
@@ -90,7 +90,7 @@ func TestHandler_Update(t *testing.T) {
 	handler, storage := createHandler()
 
 	req := &events.UpdateRequest{Event: createEvent()}
-	storage.On("Update", mock.Anything).Return(nil)
+	storage.On("Update", mock.Anything, mock.Anything).Return(nil)
 
 	res, err := handler.Update(context.Background(), req)
 
@@ -102,7 +102,7 @@ func TestHandler_RemoveError(t *testing.T) {
 	handler, storage := createHandler()
 
 	req := &events.RemoveRequest{Uuid: uuid.New().String()}
-	storage.On("Remove", mock.Anything).Return(errTest)
+	storage.On("Remove", mock.Anything, mock.Anything).Return(errTest)
 
 	res, err := handler.Remove(context.Background(), req)
 
@@ -115,7 +115,7 @@ func TestHandler_Remove(t *testing.T) {
 	handler, storage := createHandler()
 
 	req := &events.RemoveRequest{Uuid: uuid.New().String()}
-	storage.On("Remove", mock.Anything).Return(nil)
+	storage.On("Remove", mock.Anything, mock.Anything).Return(nil)
 
 	res, err := handler.Remove(context.Background(), req)
 
@@ -132,7 +132,7 @@ func TestHandler_GetEventList_Error(t *testing.T) {
 		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
 	}
 
-	storage.On("GetEventsInTime", mock.Anything, mock.Anything).Return([]domain.Event{}, errTest)
+	storage.On("GetEventsInTime", mock.Anything, mock.Anything, mock.Anything).Return([]domain.Event{}, errTest)
 
 	_, err := handler.DailyEventList(context.Background(), req)
 
@@ -156,7 +156,7 @@ func TestHandler_DailyEventList(t *testing.T) {
 		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
 	}
 
-	storage.On("GetEventsInTime", day, time.Duration(time.Hour*24)).Return([]domain.Event{
+	storage.On("GetEventsInTime", mock.Anything, day, time.Duration(time.Hour*24)).Return([]domain.Event{
 		{},
 		{},
 	}, nil)
@@ -177,7 +177,7 @@ func TestHandler_WeeklyEventList(t *testing.T) {
 		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
 	}
 
-	storage.On("GetEventsInTime", day, time.Duration(time.Hour*24*7)).Return([]domain.Event{
+	storage.On("GetEventsInTime", mock.Anything, day, time.Duration(time.Hour*24*7)).Return([]domain.Event{
 		{},
 		{},
 	}, nil)
@@ -198,7 +198,7 @@ func TestHandler_MonthlyEventList(t *testing.T) {
 		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
 	}
 
-	storage.On("GetEventsInTime", day, time.Duration(time.Hour*24*31)).Return([]domain.Event{
+	storage.On("GetEventsInTime", mock.Anything, day, time.Duration(time.Hour*24*31)).Return([]domain.Event{
 		{},
 		{},
 	}, nil)

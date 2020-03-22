@@ -7,7 +7,7 @@ import (
 )
 
 // EventID is id of events
-type EventID uuid.UUID
+type EventID = uuid.UUID
 
 // Event is base interface of events
 type Event struct {

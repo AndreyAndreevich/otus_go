@@ -7,6 +7,7 @@ import (
 
 //go:generate mockery -name Calendar -output ../mocks
 
+// Calendar is interface of BL
 type Calendar interface {
 	Create(ctx context.Context, event Event) error
 	Update(ctx context.Context, event Event) error

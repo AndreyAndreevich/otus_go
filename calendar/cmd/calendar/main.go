@@ -73,8 +73,8 @@ func main() {
 	}
 
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
-	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, storage)
 	currentCalendar := calendar.New(logger, storage, eventsDelivery)
+	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, currentCalendar)
 
 	ctx, cancel := context.WithCancel(context.Background())
 

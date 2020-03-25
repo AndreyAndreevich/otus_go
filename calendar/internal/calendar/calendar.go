@@ -26,6 +26,7 @@ func New(logger *zap.Logger, storage domain.Storage, delivery domain.Delivery) *
 	}
 }
 
+// Create new event from calendar
 func (c *Calendar) Create(ctx context.Context, event domain.Event) error {
 	err := c.storage.Insert(ctx, event)
 	if err != nil {
@@ -35,6 +36,7 @@ func (c *Calendar) Create(ctx context.Context, event domain.Event) error {
 	return nil
 }
 
+// Update event from calendar
 func (c *Calendar) Update(ctx context.Context, event domain.Event) error {
 	err := c.storage.Update(ctx, event)
 	if err != nil {
@@ -44,6 +46,7 @@ func (c *Calendar) Update(ctx context.Context, event domain.Event) error {
 	return nil
 }
 
+// Remove event from calendar
 func (c *Calendar) Remove(ctx context.Context, id domain.EventID) error {
 	err := c.storage.Remove(ctx, id)
 	if err != nil {
@@ -53,6 +56,7 @@ func (c *Calendar) Remove(ctx context.Context, id domain.EventID) error {
 	return nil
 }
 
+// DailyEventList - get daily events
 func (c *Calendar) DailyEventList(ctx context.Context, dateTime time.Time) ([]domain.Event, error) {
 	duration := time.Duration(time.Hour * 24)
 	events, err := c.storage.GetEventsInTime(ctx, dateTime, duration)
@@ -63,6 +67,7 @@ func (c *Calendar) DailyEventList(ctx context.Context, dateTime time.Time) ([]do
 	return events, nil
 }
 
+// WeeklyEventList - get weekly events
 func (c *Calendar) WeeklyEventList(ctx context.Context, dateTime time.Time) ([]domain.Event, error) {
 	duration := time.Duration(time.Hour * 24 * 7)
 	events, err := c.storage.GetEventsInTime(ctx, dateTime, duration)
@@ -73,6 +78,7 @@ func (c *Calendar) WeeklyEventList(ctx context.Context, dateTime time.Time) ([]d
 	return events, nil
 }
 
+// MonthlyEventList - get monthly events
 func (c *Calendar) MonthlyEventList(ctx context.Context, dateTime time.Time) ([]domain.Event, error) {
 	currentYear, currentMonth, _ := dateTime.Date()
 	currentLocation := dateTime.Location()

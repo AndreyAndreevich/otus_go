@@ -5,9 +5,10 @@ type Config struct {
 	LogFile string `json:"log_file"`
 	LogLvl  string `json:"log_level"`
 
-	HTTPListen HTTPListenConfig `json:"http_listen"`
-	GRPC       GRPCConfig       `json:"grpc"`
-	DB         DBConfig         `json:"db"`
+	HTTPListen   HTTPListenConfig `json:"http_listen"`
+	GRPC         GRPCConfig       `json:"grpc"`
+	DB           DBConfig         `json:"db"`
+	RabbitConfig RabbitConfig     `json:"rabbitmq"`
 }
 
 // HTTPListenConfig is config of http server
@@ -27,4 +28,11 @@ type DBConfig struct {
 	DSN             string `json:"dsn"`
 	MaxConnections  int    `json:"max_connections"`
 	IdleConnections int    `json:"idle_connections"`
+}
+
+// RabbitConfig is config for rabbitmq connect
+type RabbitConfig struct {
+	DSN      string `json:"dsn"`
+	Exchange string `json:"exchange"`
+	Queue    string `json:"queue"`
 }

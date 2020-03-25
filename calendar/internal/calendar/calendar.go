@@ -3,6 +3,7 @@ package calendar
 import (
 	"context"
 	"sync"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -15,15 +16,21 @@ type Calendar struct {
 	storage    domain.Storage
 	delivery   domain.Delivery
 	gRPCServer domain.GRPCServer
+	publisher  domain.Producer
 }
 
 // New create new calendar
-func New(logger *zap.Logger, storage domain.Storage, delivery domain.Delivery, gRPCServer domain.GRPCServer) *Calendar {
+func New(logger *zap.Logger,
+	storage domain.Storage,
+	delivery domain.Delivery,
+	gRPCServer domain.GRPCServer,
+	publisher domain.Producer) *Calendar {
 	return &Calendar{
 		logger:     logger,
 		storage:    storage,
 		delivery:   delivery,
 		gRPCServer: gRPCServer,
+		publisher:  publisher,
 	}
 }
 
@@ -56,6 +63,16 @@ func (c *Calendar) Run() error {
 		err := c.gRPCServer.Run(ctx)
 		if err != nil {
 			c.logger.Error("gRPC server run error", zap.Error(err))
+			cancel()
+		}
+	}()
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+		err := c.Schedule(ctx, time.Second*10)
+		if err != nil {
+			c.logger.Error("schedule error", zap.Error(err))
 			cancel()
 		}
 	}()

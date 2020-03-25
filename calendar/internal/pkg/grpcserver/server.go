@@ -17,17 +17,17 @@ import (
 
 // GRPCServer is gRPC server
 type GRPCServer struct {
-	logger  *zap.Logger
-	addr    string
-	storage domain.Storage
+	logger   *zap.Logger
+	addr     string
+	calendar domain.Calendar
 }
 
 // New created new GRPCServer
-func New(logger *zap.Logger, ip string, port int, storage domain.Storage) *GRPCServer {
+func New(logger *zap.Logger, ip string, port int, calendar domain.Calendar) *GRPCServer {
 	return &GRPCServer{
-		logger:  logger,
-		addr:    fmt.Sprintf("%s:%d", ip, port),
-		storage: storage,
+		logger:   logger,
+		addr:     fmt.Sprintf("%s:%d", ip, port),
+		calendar: calendar,
 	}
 }
 

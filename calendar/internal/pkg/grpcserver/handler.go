@@ -21,8 +21,8 @@ import (
 
 // handler is gRPC server handler
 type handler struct {
-	logger  *zap.Logger
-	storage domain.Storage
+	logger   *zap.Logger
+	calendar domain.Calendar
 }
 
 // Create new event

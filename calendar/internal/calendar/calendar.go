@@ -11,24 +11,22 @@ import (
 
 // Calendar is main struct in program
 type Calendar struct {
-	logger     *zap.Logger
-	storage    domain.Storage
-	delivery   domain.Delivery
-	gRPCServer domain.GRPCServer
+	logger   *zap.Logger
+	storage  domain.Storage
+	delivery domain.Delivery
 }
 
 // New create new calendar
-func New(logger *zap.Logger, storage domain.Storage, delivery domain.Delivery, gRPCServer domain.GRPCServer) *Calendar {
+func New(logger *zap.Logger, storage domain.Storage, delivery domain.Delivery) *Calendar {
 	return &Calendar{
-		logger:     logger,
-		storage:    storage,
-		delivery:   delivery,
-		gRPCServer: gRPCServer,
+		logger:   logger,
+		storage:  storage,
+		delivery: delivery,
 	}
 }
 
 // Run calendar logic
-func (c *Calendar) Run() error {
+func (c *Calendar) Run(ctx context.Context) error {
 	c.logger.Info("I'm the best of calendars")
 
 	c.delivery.AddHandler("/hello", func(data *domain.Event) (string, error) {
@@ -38,7 +36,7 @@ func (c *Calendar) Run() error {
 
 	waitGroup := sync.WaitGroup{}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 
 	waitGroup.Add(1)
 	go func() {
@@ -46,16 +44,6 @@ func (c *Calendar) Run() error {
 		err := c.delivery.Run(ctx)
 		if err != nil {
 			c.logger.Error("delivery run error", zap.Error(err))
-			cancel()
-		}
-	}()
-
-	waitGroup.Add(1)
-	go func() {
-		defer waitGroup.Done()
-		err := c.gRPCServer.Run(ctx)
-		if err != nil {
-			c.logger.Error("gRPC server run error", zap.Error(err))
 			cancel()
 		}
 	}()

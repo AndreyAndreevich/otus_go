@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/sqlxstorage"
 
@@ -72,11 +74,34 @@ func main() {
 
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
 	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, storage)
-	currentCalendar := calendar.New(logger, storage, eventsDelivery, gRPCServer)
+	currentCalendar := calendar.New(logger, storage, eventsDelivery)
 
-	if err := currentCalendar.Run(); err != nil {
-		logger.Fatal("error calendar run", zap.Error(err))
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+
+	waitGroup := sync.WaitGroup{}
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+		if err := currentCalendar.Run(ctx); err != nil {
+			logger.Error("error calendar run", zap.Error(err))
+		}
+		logger.Info("Calendar stopped")
+		cancel()
+	}()
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+		err := gRPCServer.Run(ctx)
+		if err != nil {
+			logger.Error("gRPC server run error", zap.Error(err))
+		}
+		logger.Info("gRPC stopped")
+		cancel()
+	}()
+
+	waitGroup.Wait()
 }
 
 func newLogger(level, logFile string) (*zap.Logger, error) {

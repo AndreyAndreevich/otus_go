@@ -44,8 +44,8 @@ func (s *GRPCServer) Run(ctx context.Context) error {
 	server := grpc.NewServer()
 	reflection.Register(server) // for evans
 	events.RegisterGRPCServer(server, &handler{
-		logger:  s.logger,
-		storage: s.storage,
+		logger:   s.logger,
+		calendar: s.calendar,
 	})
 
 	go func(ctx context.Context, srv *grpc.Server) {

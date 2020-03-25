@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+//go:generate mockery -name Calendar -output ../mocks
+
 type Calendar interface {
 	Create(ctx context.Context, event Event) error
 	Update(ctx context.Context, event Event) error

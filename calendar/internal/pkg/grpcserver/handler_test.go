@@ -32,12 +32,12 @@ const testLayout = "2006-01-02"
 
 var errTest = errors.New("test error")
 
-func createHandler() (*handler, *mocks.Storage) {
-	storage := &mocks.Storage{}
+func createHandler() (*handler, *mocks.Calendar) {
+	calendar := &mocks.Calendar{}
 	return &handler{
-		logger:  zap.NewNop(),
-		storage: storage,
-	}, storage
+		logger:   zap.NewNop(),
+		calendar: calendar,
+	}, calendar
 }
 
 func createEvent() *events.Event {
@@ -49,10 +49,10 @@ func createEvent() *events.Event {
 }
 
 func TestHandler_CreateError(t *testing.T) {
-	handler, storage := createHandler()
+	handler, calendar := createHandler()
 
 	req := &events.CreateRequest{Event: createEvent()}
-	storage.On("Insert", mock.Anything, mock.Anything).Return(errTest)
+	calendar.On("Create", mock.Anything, mock.Anything).Return(errTest)
 
 	res, err := handler.Create(context.Background(), req)
 
@@ -62,10 +62,10 @@ func TestHandler_CreateError(t *testing.T) {
 }
 
 func TestHandler_Create(t *testing.T) {
-	handler, storage := createHandler()
+	handler, calendar := createHandler()
 
 	req := &events.CreateRequest{Event: createEvent()}
-	storage.On("Insert", mock.Anything, mock.Anything).Return(nil)
+	calendar.On("Create", mock.Anything, mock.Anything).Return(nil)
 
 	res, err := handler.Create(context.Background(), req)
 
@@ -74,10 +74,10 @@ func TestHandler_Create(t *testing.T) {
 }
 
 func TestHandler_UpdateError(t *testing.T) {
-	handler, storage := createHandler()
+	handler, calendar := createHandler()
 
 	req := &events.UpdateRequest{Event: createEvent()}
-	storage.On("Update", mock.Anything, mock.Anything).Return(errTest)
+	calendar.On("Update", mock.Anything, mock.Anything).Return(errTest)
 
 	res, err := handler.Update(context.Background(), req)
 
@@ -87,10 +87,10 @@ func TestHandler_UpdateError(t *testing.T) {
 }
 
 func TestHandler_Update(t *testing.T) {
-	handler, storage := createHandler()
+	handler, calendar := createHandler()
 
 	req := &events.UpdateRequest{Event: createEvent()}
-	storage.On("Update", mock.Anything, mock.Anything).Return(nil)
+	calendar.On("Update", mock.Anything, mock.Anything).Return(nil)
 
 	res, err := handler.Update(context.Background(), req)
 
@@ -99,10 +99,10 @@ func TestHandler_Update(t *testing.T) {
 }
 
 func TestHandler_RemoveError(t *testing.T) {
-	handler, storage := createHandler()
+	handler, calendar := createHandler()
 
 	req := &events.RemoveRequest{Uuid: uuid.New().String()}
-	storage.On("Remove", mock.Anything, mock.Anything).Return(errTest)
+	calendar.On("Remove", mock.Anything, mock.Anything).Return(errTest)
 
 	res, err := handler.Remove(context.Background(), req)
 
@@ -112,10 +112,10 @@ func TestHandler_RemoveError(t *testing.T) {
 }
 
 func TestHandler_Remove(t *testing.T) {
-	handler, storage := createHandler()
+	handler, calendar := createHandler()
 
 	req := &events.RemoveRequest{Uuid: uuid.New().String()}
-	storage.On("Remove", mock.Anything, mock.Anything).Return(nil)
+	calendar.On("Remove", mock.Anything, mock.Anything).Return(nil)
 
 	res, err := handler.Remove(context.Background(), req)
 
@@ -123,40 +123,27 @@ func TestHandler_Remove(t *testing.T) {
 	assert.Equal(t, events.ErrorCode_OK, res.Error)
 }
 
-func TestHandler_GetEventList_Error(t *testing.T) {
-	handler, storage := createHandler()
+func TestHandler_DailyEventListError(t *testing.T) {
+	handler, calendar := createHandler()
 
 	day, _ := time.Parse(testLayout, "2020-02-12")
+	req := &events.DataRequest{DateTime: &timestamp.Timestamp{Seconds: day.Unix()}}
+	calendar.On("DailyEventList", mock.Anything, mock.Anything).Return(nil, errTest)
 
-	req := &events.DataRequest{
-		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
-	}
+	res, err := handler.DailyEventList(context.Background(), req)
 
-	storage.On("GetEventsInTime", mock.Anything, mock.Anything, mock.Anything).Return([]domain.Event{}, errTest)
-
-	_, err := handler.DailyEventList(context.Background(), req)
-
+	assert.Nil(t, res)
 	assert.Error(t, err)
-
-	_, err = handler.WeeklyEventList(context.Background(), req)
-
-	assert.Error(t, err)
-
-	_, err = handler.MonthlyEventList(context.Background(), req)
-
-	assert.Error(t, err)
+	assert.Equal(t, codes.Internal, status.Code(err))
 }
 
 func TestHandler_DailyEventList(t *testing.T) {
-	handler, storage := createHandler()
+	handler, calendar := createHandler()
 
 	day, _ := time.Parse(testLayout, "2020-02-12")
+	req := &events.DataRequest{DateTime: &timestamp.Timestamp{Seconds: day.Unix()}}
 
-	req := &events.DataRequest{
-		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
-	}
-
-	storage.On("GetEventsInTime", mock.Anything, day, time.Duration(time.Hour*24)).Return([]domain.Event{
+	calendar.On("DailyEventList", mock.Anything, day).Return([]domain.Event{
 		{},
 		{},
 	}, nil)
@@ -168,16 +155,27 @@ func TestHandler_DailyEventList(t *testing.T) {
 	assert.Equal(t, events.ErrorCode_OK, res.Error)
 }
 
-func TestHandler_WeeklyEventList(t *testing.T) {
-	handler, storage := createHandler()
+func TestHandler_WeeklyEventListError(t *testing.T) {
+	handler, calendar := createHandler()
 
 	day, _ := time.Parse(testLayout, "2020-02-12")
+	req := &events.DataRequest{DateTime: &timestamp.Timestamp{Seconds: day.Unix()}}
+	calendar.On("WeeklyEventList", mock.Anything, mock.Anything).Return(nil, errTest)
 
-	req := &events.DataRequest{
-		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
-	}
+	res, err := handler.WeeklyEventList(context.Background(), req)
 
-	storage.On("GetEventsInTime", mock.Anything, day, time.Duration(time.Hour*24*7)).Return([]domain.Event{
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.Equal(t, codes.Internal, status.Code(err))
+}
+
+func TestHandler_WeeklyEventList(t *testing.T) {
+	handler, calendar := createHandler()
+
+	day, _ := time.Parse(testLayout, "2020-02-12")
+	req := &events.DataRequest{DateTime: &timestamp.Timestamp{Seconds: day.Unix()}}
+
+	calendar.On("WeeklyEventList", mock.Anything, day).Return([]domain.Event{
 		{},
 		{},
 	}, nil)
@@ -189,16 +187,27 @@ func TestHandler_WeeklyEventList(t *testing.T) {
 	assert.Equal(t, events.ErrorCode_OK, res.Error)
 }
 
+func TestHandler_MonthlyEventListError(t *testing.T) {
+	handler, calendar := createHandler()
+
+	day, _ := time.Parse(testLayout, "2020-02-12")
+	req := &events.DataRequest{DateTime: &timestamp.Timestamp{Seconds: day.Unix()}}
+	calendar.On("MonthlyEventList", mock.Anything, mock.Anything).Return(nil, errTest)
+
+	res, err := handler.MonthlyEventList(context.Background(), req)
+
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.Equal(t, codes.Internal, status.Code(err))
+}
+
 func TestHandler_MonthlyEventList(t *testing.T) {
-	handler, storage := createHandler()
+	handler, calendar := createHandler()
 
-	day, _ := time.Parse(testLayout, "2020-01-12")
+	day, _ := time.Parse(testLayout, "2020-02-12")
+	req := &events.DataRequest{DateTime: &timestamp.Timestamp{Seconds: day.Unix()}}
 
-	req := &events.DataRequest{
-		DateTime: &timestamp.Timestamp{Seconds: day.Unix()},
-	}
-
-	storage.On("GetEventsInTime", mock.Anything, day, time.Duration(time.Hour*24*31)).Return([]domain.Event{
+	calendar.On("MonthlyEventList", mock.Anything, day).Return([]domain.Event{
 		{},
 		{},
 	}, nil)

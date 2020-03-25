@@ -9,7 +9,7 @@ import (
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/events"
+	"github.com/AndreyAndreevich/otus_go/calendar/external/pkg/events"
 	"google.golang.org/grpc"
 
 	"go.uber.org/zap"

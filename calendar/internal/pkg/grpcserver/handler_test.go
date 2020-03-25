@@ -23,7 +23,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/events"
+	"github.com/AndreyAndreevich/otus_go/calendar/external/pkg/events"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/mocks"
 )

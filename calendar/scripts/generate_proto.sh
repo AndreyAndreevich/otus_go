@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-cd api/protobuf-spec
+cd api
 
-protoc ./events.proto --go_out=plugins=grpc:../../internal/pkg/events
-
-cd -
+protoc ./events.proto --go_out=plugins=grpc:../external/pkg/events

@@ -9,7 +9,7 @@ import (
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/events"
+	"github.com/AndreyAndreevich/otus_go/calendar/external/pkg/events"
 	"google.golang.org/grpc"
 
 	"go.uber.org/zap"
@@ -17,17 +17,17 @@ import (
 
 // GRPCServer is gRPC server
 type GRPCServer struct {
-	logger  *zap.Logger
-	addr    string
-	storage domain.Storage
+	logger   *zap.Logger
+	addr     string
+	calendar domain.Calendar
 }
 
 // New created new GRPCServer
-func New(logger *zap.Logger, ip string, port int, storage domain.Storage) *GRPCServer {
+func New(logger *zap.Logger, ip string, port int, calendar domain.Calendar) *GRPCServer {
 	return &GRPCServer{
-		logger:  logger,
-		addr:    fmt.Sprintf("%s:%d", ip, port),
-		storage: storage,
+		logger:   logger,
+		addr:     fmt.Sprintf("%s:%d", ip, port),
+		calendar: calendar,
 	}
 }
 
@@ -44,8 +44,8 @@ func (s *GRPCServer) Run(ctx context.Context) error {
 	server := grpc.NewServer()
 	reflection.Register(server) // for evans
 	events.RegisterGRPCServer(server, &handler{
-		logger:  s.logger,
-		storage: s.storage,
+		logger:   s.logger,
+		calendar: s.calendar,
 	})
 
 	go func(ctx context.Context, srv *grpc.Server) {

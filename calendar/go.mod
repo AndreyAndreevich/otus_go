@@ -3,21 +3,20 @@ module github.com/AndreyAndreevich/otus_go/calendar
 go 1.12
 
 require (
-	github.com/gobuffalo/packr v1.30.1
+	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang/protobuf v1.3.4
-	github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc // indirect
 	github.com/google/uuid v1.1.1
-	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.2.0
-	github.com/rubenv/sql-migrate v0.0.0-20200212082348-64f95ea68aa3
-	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71 // indirect
+	github.com/mattn/go-sqlite3 v1.12.0 // indirect
+	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
+	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.4.0
 	go.uber.org/zap v1.13.0
-	golang.org/x/arch v0.0.0-20191126211547-368ea8f32fff // indirect
-	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad // indirect
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
-	golang.org/x/tools v0.0.0-20200125223703-d33eef8e6825
+	golang.org/x/tools v0.0.0-20200125223703-d33eef8e6825 // indirect
+	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.27.1
+	gopkg.in/yaml.v2 v2.2.5 // indirect
 )

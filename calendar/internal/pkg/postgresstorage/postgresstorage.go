@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	_ "github.com/lib/pq"
-
 	"github.com/jmoiron/sqlx"
 
 	"github.com/google/uuid"
@@ -170,6 +168,7 @@ func (s *PostgresStorage) parse(rows *sqlx.Rows) ([]domain.Event, error) {
 	return events, nil
 }
 
+// Close db connection
 func (s *PostgresStorage) Close() error {
 	return s.db.Close()
 }

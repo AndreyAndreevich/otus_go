@@ -7,6 +7,8 @@ import (
 	"os"
 	"sync"
 
+	_ "github.com/lib/pq"
+
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/postgresstorage"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/config"

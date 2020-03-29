@@ -17,7 +17,7 @@ type Event struct {
 	Owner       string `json:"owner"`
 }
 
-func eventToJson(event domain.Event) Event {
+func eventToJSON(event domain.Event) Event {
 	return Event{
 		ID:          event.ID.String(),
 		Heading:     event.Heading,
@@ -28,7 +28,7 @@ func eventToJson(event domain.Event) Event {
 	}
 }
 
-func eventFromJson(event Event) (domain.Event, error) {
+func eventFromJSON(event Event) (domain.Event, error) {
 	id, err := uuid.Parse(event.ID)
 	if err != nil {
 		return domain.Event{}, err

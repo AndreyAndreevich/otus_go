@@ -19,6 +19,7 @@ type Producer struct {
 	exchange   string
 }
 
+// NewProducer - create rabbit producer
 func NewProducer(logger *zap.Logger,
 	errorChan chan<- error,
 	dsn string,
@@ -73,8 +74,9 @@ func NewProducer(logger *zap.Logger,
 	return producer, nil
 }
 
+// Publish event to exchange
 func (p *Producer) Publish(event domain.Event) error {
-	jsonEvent := eventToJson(event)
+	jsonEvent := eventToJSON(event)
 
 	body, err := json.Marshal(jsonEvent)
 	if err != nil {
@@ -104,6 +106,7 @@ func (p *Producer) Publish(event domain.Event) error {
 	return nil
 }
 
+// Close producer
 func (p *Producer) Close() error {
 	if err := p.channel.Close(); err != nil {
 		return err

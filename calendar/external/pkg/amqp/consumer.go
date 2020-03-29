@@ -13,7 +13,9 @@ import (
 )
 
 var (
-	ErrConsumerStop           = errors.New("consumer stops")
+	// ErrConsumerStop - consumer stop error
+	ErrConsumerStop = errors.New("consumer stops")
+	// ErrConsumerWithoutHandler - empty handler
 	ErrConsumerWithoutHandler = errors.New("handler not defined")
 )
 
@@ -27,6 +29,7 @@ type Consumer struct {
 	exchangeName string
 }
 
+// NewConsumer - create new rabbit consumer
 func NewConsumer(
 	logger *zap.Logger,
 	errorChan chan<- error,
@@ -97,6 +100,7 @@ func NewConsumer(
 	return consumer, nil
 }
 
+// Consume - consume messages and handle events
 func (c *Consumer) Consume(ctx context.Context, handler func(event domain.Event) error) error {
 
 	err := c.channel.QueueBind(
@@ -152,7 +156,7 @@ func (c *Consumer) Consume(ctx context.Context, handler func(event domain.Event)
 						return
 					}
 
-					event, err := eventFromJson(jsonEvent)
+					event, err := eventFromJSON(jsonEvent)
 					if err != nil {
 						c.logger.Error("parse event error",
 							zap.Reflect("json event", jsonEvent),
@@ -178,6 +182,7 @@ func (c *Consumer) Consume(ctx context.Context, handler func(event domain.Event)
 	return nil
 }
 
+// Close consumer
 func (c *Consumer) Close() error {
 	if err := c.channel.Close(); err != nil {
 		return err

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"log"
 	"os"
@@ -34,15 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	file, err := os.Open(*configPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	decoder := json.NewDecoder(file)
-
-	var cfg config.Config
-	err = decoder.Decode(&cfg)
+	cfg, err := config.New(*configPath)
 	if err != nil {
 		log.Fatal(err)
 	}

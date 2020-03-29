@@ -1,5 +1,10 @@
 package config
 
+import (
+	"encoding/json"
+	"os"
+)
+
 // Config is main config of app
 type Config struct {
 	LogFile string `json:"log_file"`
@@ -27,4 +32,24 @@ type DBConfig struct {
 	DSN             string `json:"dsn"`
 	MaxConnections  int    `json:"max_connections"`
 	IdleConnections int    `json:"idle_connections"`
+}
+
+// New - create new config from file path
+func New(configPath string) (*Config, error) {
+	file, err := os.Open(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+
+	cfg := &Config{}
+	err = decoder.Decode(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
 }

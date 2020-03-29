@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
-func (c *Calendar) Schedule(ctx context.Context, timeout time.Duration) error {
+// Schedule publish events
+func (c *Calendar) Schedule(ctx context.Context, duration time.Duration) error {
 	return nil
 }

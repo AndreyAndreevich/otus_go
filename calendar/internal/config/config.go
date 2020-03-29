@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"time"
 )
 
 // Config is main config of app
@@ -15,7 +16,8 @@ type Config struct {
 	DB           DBConfig         `json:"db"`
 	RabbitConfig RabbitConfig     `json:"rabbitmq"`
 
-	ScheduleDurationS int `json:"schedule_duration_s"`
+	ScheduleDurationString string        `json:"schedule_duration"`
+	ScheduleDuration       time.Duration `json:"-"`
 }
 
 // HTTPListenConfig is config of http server
@@ -57,6 +59,11 @@ func New(configPath string) (*Config, error) {
 
 	cfg := &Config{}
 	err = decoder.Decode(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.ScheduleDuration, err = time.ParseDuration(cfg.ScheduleDurationString)
 	if err != nil {
 		return nil, err
 	}

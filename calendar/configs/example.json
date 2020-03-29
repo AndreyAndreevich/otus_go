@@ -18,5 +18,5 @@
     "dsn": "amqp://guest:guest@localhost",
     "exchange": "calendar"
   },
-  "schedule_duration_s": 10
+  "schedule_duration": "10s"
 }

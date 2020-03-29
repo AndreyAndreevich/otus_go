@@ -63,7 +63,7 @@ func main() {
 	}
 	defer publisher.Close()
 
-	currentCalendar := calendar.New(logger, storage, eventsDelivery, publisher)
+	currentCalendar := calendar.New(logger, storage, eventsDelivery, publisher, cfg.ScheduleDuration)
 	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, currentCalendar)
 
 	ctx, cancel := context.WithCancel(context.Background())

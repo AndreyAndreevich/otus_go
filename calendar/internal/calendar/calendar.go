@@ -12,19 +12,25 @@ import (
 
 // Calendar is main struct in program
 type Calendar struct {
-	logger    *zap.Logger
-	storage   domain.Storage
-	delivery  domain.Delivery
-	publisher domain.Producer
+	logger           *zap.Logger
+	storage          domain.Storage
+	delivery         domain.Delivery
+	publisher        domain.Producer
+	scheduleDuration time.Duration
 }
 
 // New create new calendar
-func New(logger *zap.Logger, storage domain.Storage, delivery domain.Delivery, publisher domain.Producer) *Calendar {
+func New(logger *zap.Logger,
+	storage domain.Storage,
+	delivery domain.Delivery,
+	publisher domain.Producer,
+	scheduleDuration time.Duration) *Calendar {
 	return &Calendar{
-		logger:    logger,
-		storage:   storage,
-		delivery:  delivery,
-		publisher: publisher,
+		logger:           logger,
+		storage:          storage,
+		delivery:         delivery,
+		publisher:        publisher,
+		scheduleDuration: scheduleDuration,
 	}
 }
 
@@ -125,7 +131,7 @@ func (c *Calendar) Run(ctx context.Context) error {
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		err := c.Schedule(ctx, time.Second*10)
+		err := c.Schedule(ctx, c.scheduleDuration)
 		if err != nil {
 			c.logger.Error("schedule error", zap.Error(err))
 			cancel()

@@ -18,6 +18,20 @@ type Storage struct {
 	mock.Mock
 }
 
+// Close provides a mock function with given fields:
+func (_m *Storage) Close() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetEventsInTime provides a mock function with given fields: ctx, _a1, duration
 func (_m *Storage) GetEventsInTime(ctx context.Context, _a1 time.Time, duration time.Duration) ([]domain.Event, error) {
 	ret := _m.Called(ctx, _a1, duration)

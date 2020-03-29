@@ -5,11 +5,14 @@ import (
 	"database/sql"
 	"time"
 
+	_ "github.com/jackc/pgx/stdlib"
+
+	"github.com/jmoiron/sqlx"
+
 	"github.com/google/uuid"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 	"github.com/gobuffalo/packr"
-	"github.com/jmoiron/sqlx"
 	migrate "github.com/rubenv/sql-migrate"
 	"go.uber.org/zap"
 )
@@ -21,11 +24,25 @@ type PostgresStorage struct {
 }
 
 // New created new PostgresStorage
-func New(logger *zap.Logger, db *sqlx.DB) *PostgresStorage {
+func New(logger *zap.Logger, dsn string, maxOpenConn, maxIdleConn int) (*PostgresStorage, error) {
+	db, err := sqlx.Connect("pgx", dsn)
+	if err != nil {
+		logger.Error("connect to db error", zap.Error(err))
+		return nil, err
+	}
+
+	db.SetMaxOpenConns(maxOpenConn)
+	db.SetMaxIdleConns(maxIdleConn)
+
+	if err = db.Ping(); err != nil {
+		logger.Error("ping to db error", zap.Error(err))
+		return nil, err
+	}
+
 	return &PostgresStorage{
 		logger: logger,
 		db:     db,
-	}
+	}, nil
 }
 
 // Migrate db
@@ -168,4 +185,8 @@ func (s *PostgresStorage) parse(rows *sql.Rows) ([]domain.Event, error) {
 	}
 
 	return events, nil
+}
+
+func (s *PostgresStorage) Close() error {
+	return s.db.Close()
 }

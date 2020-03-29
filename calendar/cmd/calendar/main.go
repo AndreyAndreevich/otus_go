@@ -9,10 +9,6 @@ import (
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/postgresstorage"
 
-	_ "github.com/jackc/pgx/stdlib"
-
-	"github.com/jmoiron/sqlx"
-
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/config"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/grpcserver"
@@ -43,22 +39,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, err := sqlx.Connect("pgx", cfg.DB.DSN)
+	storage, err := postgresstorage.New(logger, cfg.DB.DSN, cfg.DB.MaxConnections, cfg.DB.IdleConnections)
 	if err != nil {
-		logger.Error("connect to db error", zap.Error(err))
-		return
+		logger.Fatal("db create error", zap.Error(err))
 	}
-	db.SetMaxOpenConns(cfg.DB.MaxConnections)
-	db.SetMaxIdleConns(cfg.DB.MaxConnections)
+	defer storage.Close()
 
-	defer db.Close()
-
-	if err = db.Ping(); err != nil {
-		logger.Fatal("ping to db error", zap.Error(err))
-		return
-	}
-
-	storage := postgresstorage.New(logger, db)
 	if err := storage.Migrate("postgres"); err != nil {
 		logger.Fatal("migrate error", zap.Error(err))
 	}

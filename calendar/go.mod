@@ -7,7 +7,7 @@ require (
 	github.com/golang/protobuf v1.3.4
 	github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc // indirect
 	github.com/google/uuid v1.1.1
-	github.com/jackc/pgx v3.6.2+incompatible // indirect
+	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.2.0
 	github.com/rubenv/sql-migrate v0.0.0-20200212082348-64f95ea68aa3

@@ -14,4 +14,5 @@ type Storage interface {
 	Update(ctx context.Context, event Event) error
 	Listing(ctx context.Context) ([]Event, error)
 	GetEventsInTime(ctx context.Context, time time.Time, duration time.Duration) ([]Event, error)
+	Close() error
 }

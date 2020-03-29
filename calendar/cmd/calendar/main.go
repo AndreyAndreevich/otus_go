@@ -45,10 +45,6 @@ func main() {
 	}
 	defer storage.Close()
 
-	if err := storage.Migrate("postgres"); err != nil {
-		logger.Fatal("migrate error", zap.Error(err))
-	}
-
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
 	currentCalendar := calendar.New(logger, storage, eventsDelivery)
 	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, currentCalendar)

@@ -12,8 +12,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
-	"github.com/gobuffalo/packr"
-	migrate "github.com/rubenv/sql-migrate"
 	"go.uber.org/zap"
 )
 
@@ -43,32 +41,6 @@ func New(logger *zap.Logger, dsn string, maxOpenConn, maxIdleConn int) (*Postgre
 		logger: logger,
 		db:     db,
 	}, nil
-}
-
-// Migrate db
-func (s *PostgresStorage) Migrate(dialect string) error {
-	migrate.SetTable("_calendar_migrations")
-	migrations := &migrate.PackrMigrationSource{
-		Box: packr.NewBox("./migrations"),
-	}
-	s.logger.Debug("Storage migrations: start")
-	n, err := migrate.Exec(s.db.DB, dialect, migrations, migrate.Up)
-	if err != nil {
-		return err
-	}
-
-	rows, err := migrate.GetMigrationRecords(s.db.DB, dialect)
-	if err != nil {
-		return err
-	}
-	cnt := len(rows)
-	last := ""
-	if cnt > 0 {
-		last = rows[cnt-1].Id
-	}
-
-	s.logger.Info("Storage migrations: migrated", zap.Int("count", n), zap.String("current", last))
-	return nil
 }
 
 // Insert into events

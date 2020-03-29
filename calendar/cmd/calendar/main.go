@@ -45,6 +45,10 @@ func main() {
 	}
 	defer storage.Close()
 
+	if err := storage.HealthCheck(); err != nil {
+		logger.Fatal("HealthCheck storage error", zap.Error(err))
+	}
+
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
 	currentCalendar := calendar.New(logger, storage, eventsDelivery)
 	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, currentCalendar)

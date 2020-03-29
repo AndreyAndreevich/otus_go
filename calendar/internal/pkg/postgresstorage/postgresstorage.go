@@ -42,15 +42,15 @@ func New(logger *zap.Logger, dsn string, maxOpenConn, maxIdleConn int) (*Postgre
 	db.SetMaxOpenConns(maxOpenConn)
 	db.SetMaxIdleConns(maxIdleConn)
 
-	if err = db.Ping(); err != nil {
-		logger.Error("ping to db error", zap.Error(err))
-		return nil, err
-	}
-
 	return &PostgresStorage{
 		logger: logger,
 		db:     db,
 	}, nil
+}
+
+// HealthCheck is ping to db
+func (s *PostgresStorage) HealthCheck() error {
+	return s.db.Ping()
 }
 
 // Insert into events

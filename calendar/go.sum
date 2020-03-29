@@ -1,6 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/AndreyAndreevich/otus_go v0.0.0-20200224221354-24733d68ae0b h1:iAb+G6CYb+b9/xLN2dCGRFejWZidp3fUFzl6orLfSaE=
 github.com/AndreyAndreevich/otus_go v0.0.0-20200322123805-fbb7a901d851 h1:265ecfh78RHZd4uYzg5fCg/Po3NJSsZMXpUQS3IIpUU=
+github.com/AndreyAndreevich/otus_go v0.0.0-20200325163526-57f417219b83 h1:QpqEZ2lcIZLKRN5RwRh6/Ms/juKfRznxTFCyrVAmvRs=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=

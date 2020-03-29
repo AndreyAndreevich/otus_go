@@ -1,4 +1,4 @@
-package sqlxstorage
+package postgresstorage
 
 import (
 	"context"
@@ -14,22 +14,22 @@ import (
 	"go.uber.org/zap"
 )
 
-// SQLXStorage is storage which used sqlx
-type SQLXStorage struct {
+// PostgresStorage is storage which used sqlx
+type PostgresStorage struct {
 	logger *zap.Logger
 	db     *sqlx.DB
 }
 
-// New created new SQLXStorage
-func New(logger *zap.Logger, db *sqlx.DB) *SQLXStorage {
-	return &SQLXStorage{
+// New created new PostgresStorage
+func New(logger *zap.Logger, db *sqlx.DB) *PostgresStorage {
+	return &PostgresStorage{
 		logger: logger,
 		db:     db,
 	}
 }
 
 // Migrate db
-func (s *SQLXStorage) Migrate(dialect string) error {
+func (s *PostgresStorage) Migrate(dialect string) error {
 	migrate.SetTable("_calendar_migrations")
 	migrations := &migrate.PackrMigrationSource{
 		Box: packr.NewBox("./migrations"),
@@ -55,7 +55,7 @@ func (s *SQLXStorage) Migrate(dialect string) error {
 }
 
 // Insert into events
-func (s *SQLXStorage) Insert(ctx context.Context, event domain.Event) error {
+func (s *PostgresStorage) Insert(ctx context.Context, event domain.Event) error {
 	query := `INSERT INTO events (id, heading, start_date, start_time, end_date, end_time, descr, owner)
 				VALUES (:id, :heading, :start_date, :start_time, :end_date, :end_time, :descr, :owner)`
 	_, err := s.db.NamedExecContext(ctx, query, map[string]interface{}{
@@ -73,7 +73,7 @@ func (s *SQLXStorage) Insert(ctx context.Context, event domain.Event) error {
 }
 
 // Remove from events
-func (s *SQLXStorage) Remove(ctx context.Context, id domain.EventID) error {
+func (s *PostgresStorage) Remove(ctx context.Context, id domain.EventID) error {
 	query := `DELETE FROM events WHERE id = :id`
 	_, err := s.db.NamedExecContext(ctx, query, map[string]interface{}{
 		"id": id.String(),
@@ -83,7 +83,7 @@ func (s *SQLXStorage) Remove(ctx context.Context, id domain.EventID) error {
 }
 
 // Update event
-func (s *SQLXStorage) Update(ctx context.Context, event domain.Event) error {
+func (s *PostgresStorage) Update(ctx context.Context, event domain.Event) error {
 	query := `UPDATE events SET heading = :heading, start_date = :start_date, start_time = :start_time, 
 				end_date = :end_date, end_time = :end_time, descr = :descr, owner = :owner
 				WHERE id = :id`
@@ -103,7 +103,7 @@ func (s *SQLXStorage) Update(ctx context.Context, event domain.Event) error {
 }
 
 // Listing all events
-func (s *SQLXStorage) Listing(ctx context.Context) ([]domain.Event, error) {
+func (s *PostgresStorage) Listing(ctx context.Context) ([]domain.Event, error) {
 	query := `SELECT * FROM events`
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
@@ -114,7 +114,7 @@ func (s *SQLXStorage) Listing(ctx context.Context) ([]domain.Event, error) {
 }
 
 // GetEventsInTime get events from time to time + duration
-func (s *SQLXStorage) GetEventsInTime(ctx context.Context,
+func (s *PostgresStorage) GetEventsInTime(ctx context.Context,
 	time time.Time,
 	duration time.Duration) ([]domain.Event, error) {
 
@@ -132,7 +132,7 @@ func (s *SQLXStorage) GetEventsInTime(ctx context.Context,
 	return s.parse(rows.Rows)
 }
 
-func (s *SQLXStorage) parse(rows *sql.Rows) ([]domain.Event, error) {
+func (s *PostgresStorage) parse(rows *sql.Rows) ([]domain.Event, error) {
 	defer rows.Close()
 
 	var events []domain.Event

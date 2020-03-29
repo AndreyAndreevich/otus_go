@@ -8,11 +8,11 @@ import (
 	"os"
 	"sync"
 
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/sqlxstorage"
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/postgresstorage"
+
+	_ "github.com/jackc/pgx/stdlib"
 
 	"github.com/jmoiron/sqlx"
-
-	_ "github.com/lib/pq"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/config"
 
@@ -52,7 +52,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, err := sqlx.Open("postgres", cfg.DB.DSN)
+	db, err := sqlx.Connect("pgx", cfg.DB.DSN)
 	if err != nil {
 		logger.Error("connect to db error", zap.Error(err))
 		return
@@ -67,7 +67,7 @@ func main() {
 		return
 	}
 
-	storage := sqlxstorage.New(logger, db)
+	storage := postgresstorage.New(logger, db)
 	if err := storage.Migrate("postgres"); err != nil {
 		logger.Fatal("migrate error", zap.Error(err))
 	}

@@ -13,5 +13,10 @@
     "dsn": "postgres://calendar:password@localhost/calendar?sslmode=disable",
     "max_connections": 2,
     "idle_connections": 2
-  }
+  },
+  "rabbitmq": {
+    "dsn": "amqp://guest:guest@localhost",
+    "exchange": "calendar"
+  },
+  "schedule_duration_s": 10
 }

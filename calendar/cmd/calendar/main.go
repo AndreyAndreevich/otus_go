@@ -7,6 +7,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/amqp"
+
 	_ "github.com/lib/pq"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/postgresstorage"
@@ -51,8 +53,17 @@ func main() {
 		logger.Fatal("HealthCheck storage error", zap.Error(err))
 	}
 
+	errorChan := make(chan error)
+
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
-	currentCalendar := calendar.New(logger, storage, eventsDelivery)
+
+	publisher, err := amqp.NewProducer(logger, errorChan, cfg.RabbitConfig.DSN, cfg.RabbitConfig.Exchange)
+	if err != nil {
+		logger.Fatal("create publisher error", zap.Error(err))
+	}
+	defer publisher.Close()
+
+	currentCalendar := calendar.New(logger, storage, eventsDelivery, publisher)
 	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, currentCalendar)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -80,6 +91,18 @@ func main() {
 		cancel()
 	}()
 
+	waitGroup.Add(1)
+	go func() {
+		select {
+		case <-ctx.Done():
+		case err, ok := <-errorChan:
+			if ok {
+				logger.Error("error from error channel", zap.Error(err))
+				cancel()
+			}
+		}
+	}()
+
 	waitGroup.Wait()
 }
 
@@ -93,8 +116,10 @@ func newLogger(level, logFile string) (*zap.Logger, error) {
 		return nil, err
 	}
 
-	cfg.OutputPaths = []string{
-		logFile,
+	if level != "debug" {
+		cfg.OutputPaths = []string{logFile}
+	} else {
+		cfg.OutputPaths = []string{"stdout"}
 	}
 
 	cfg.Level = atom

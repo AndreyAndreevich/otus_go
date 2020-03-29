@@ -1,7 +1,6 @@
 package amqp
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"sync"
@@ -20,10 +19,7 @@ type Producer struct {
 	exchange   string
 }
 
-func NewProducer(
-	logger *zap.Logger,
-	waitGroup *sync.WaitGroup,
-	ctx context.Context,
+func NewProducer(logger *zap.Logger,
 	errorChan chan<- error,
 	dsn string,
 	exchange string,
@@ -40,6 +36,7 @@ func NewProducer(
 	}
 
 	if producer.channel, err = producer.connection.Channel(); err != nil {
+		producer.connection.Close()
 		logger.Error("create channel error", zap.Error(err))
 		return nil, err
 	}
@@ -54,6 +51,9 @@ func NewProducer(
 		nil,
 	)
 	if err != nil {
+		producer.channel.Close()
+		producer.connection.Close()
+
 		logger.Error("declare exchange error", zap.Error(err))
 		return nil, err
 	}
@@ -61,28 +61,21 @@ func NewProducer(
 	errChan := make(chan *amqp.Error)
 	producer.channel.NotifyClose(errChan)
 
+	waitGroup := &sync.WaitGroup{}
+
 	waitGroup.Add(1)
-	go func() {
+	go func(waitGroup *sync.WaitGroup) {
 		defer waitGroup.Done()
-		select {
-		case <-ctx.Done():
-			return
-		case err, ok := <-errChan:
-			if ok && err != nil {
-				errorChan <- errors.New(err.Error())
-			}
+		if err, ok := <-errChan; ok && err != nil {
+			errorChan <- errors.New(err.Error())
 		}
-	}()
+	}(waitGroup)
 
 	return producer, nil
 }
 
 func (p *Producer) Publish(event domain.Event) error {
-	jsonEvent, err := eventToJson(event)
-	if err != nil {
-		p.logger.Error("cannot build json event", zap.Error(err))
-		return err
-	}
+	jsonEvent := eventToJson(event)
 
 	body, err := json.Marshal(jsonEvent)
 	if err != nil {

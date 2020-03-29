@@ -6,8 +6,6 @@ import (
 	"sync"
 
 	"github.com/streadway/amqp"
-	"gitlab.octafx.com/develop/ms-ctrader-parser/events"
-	libevents "gitlab.octafx.com/go-libs/events"
 	"go.uber.org/zap"
 )
 
@@ -26,11 +24,11 @@ type Consumer struct {
 	channel      *amqp.Channel
 	queue        *amqp.Queue
 	exchangeName string
-	handler      libevents.Handler
+	//	handler      libevents.Handler
 }
 
-func (c *Consumer) Consume(events []string, handler libevents.Handler) error {
-	c.handler = handler
+func (c *Consumer) Consume(events []string /* handler libevents.Handler*/) error {
+	//c.handler = handler
 
 	// Bind Queue for each event from eventsToListen
 	for _, eventName := range events {
@@ -46,46 +44,49 @@ func (c *Consumer) Consume(events []string, handler libevents.Handler) error {
 		}
 	}
 
-	if c.handler == nil {
-		return ErrConsumerWithoutHandler
-	}
+	/*
+			if c.handler == nil {
+				return ErrConsumerWithoutHandler
+			}
 
-	msgs, err := c.channel.Consume(
-		c.queue.Name,
-		"",
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return err
-	}
 
-	c.waitGroup.Add(1)
-	go func() {
-		defer c.waitGroup.Done()
-		for {
-			select {
-			case <-c.ctx.Done():
-				c.logger.Debug("consumer worker close")
-				return
-			case msg, ok := <-msgs:
-				if ok {
-					c.logger.Debug("income message")
-					c.handleMessage(&msg)
-				} else {
-					c.errorChan <- ErrConsumerStop
+		msgs, err := c.channel.Consume(
+			c.queue.Name,
+			"",
+			false,
+			false,
+			false,
+			false,
+			nil,
+		)
+		if err != nil {
+			return err
+		}
+
+		c.waitGroup.Add(1)
+		go func() {
+			defer c.waitGroup.Done()
+			for {
+				select {
+				case <-c.ctx.Done():
+					c.logger.Debug("consumer worker close")
 					return
+				case msg, ok := <-msgs:
+					if ok {
+						c.logger.Debug("income message")
+						c.handleMessage(&msg)
+					} else {
+						c.errorChan <- ErrConsumerStop
+						return
+					}
 				}
 			}
-		}
-	}()
-
+		}()
+	*/
 	return nil
 }
 
+/*
 func NewConsumer(
 	logger *zap.Logger,
 	waitGroup *sync.WaitGroup,
@@ -209,3 +210,4 @@ func (c *Consumer) Close() error {
 
 	return nil
 }
+*/

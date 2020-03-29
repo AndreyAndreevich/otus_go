@@ -14,6 +14,8 @@ type Config struct {
 	GRPC         GRPCConfig       `json:"grpc"`
 	DB           DBConfig         `json:"db"`
 	RabbitConfig RabbitConfig     `json:"rabbitmq"`
+
+	ScheduleDurationS int `json:"schedule_duration_s"`
 }
 
 // HTTPListenConfig is config of http server

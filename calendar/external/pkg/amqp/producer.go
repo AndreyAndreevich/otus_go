@@ -23,6 +23,7 @@ func NewProducer(logger *zap.Logger,
 	errorChan chan<- error,
 	dsn string,
 	exchange string,
+	waitGroup *sync.WaitGroup,
 ) (result *Producer, err error) {
 
 	producer := &Producer{
@@ -60,8 +61,6 @@ func NewProducer(logger *zap.Logger,
 
 	errChan := make(chan *amqp.Error)
 	producer.channel.NotifyClose(errChan)
-
-	waitGroup := &sync.WaitGroup{}
 
 	waitGroup.Add(1)
 	go func(waitGroup *sync.WaitGroup) {

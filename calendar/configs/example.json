@@ -16,7 +16,8 @@
   },
   "rabbitmq": {
     "dsn": "amqp://guest:guest@localhost",
-    "exchange": "calendar"
+    "exchange": "calendar",
+    "queue": "sender"
   },
   "schedule_duration": "10s"
 }

@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/amqp"
+	"github.com/AndreyAndreevich/otus_go/calendar/external/pkg/amqp"
 
 	_ "github.com/lib/pq"
 
@@ -54,10 +54,11 @@ func main() {
 	}
 
 	errorChan := make(chan error)
+	waitGroup := sync.WaitGroup{}
 
 	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
 
-	publisher, err := amqp.NewProducer(logger, errorChan, cfg.RabbitConfig.DSN, cfg.RabbitConfig.Exchange)
+	publisher, err := amqp.NewProducer(logger, errorChan, cfg.RabbitConfig.DSN, cfg.RabbitConfig.Exchange, &waitGroup)
 	if err != nil {
 		logger.Fatal("create publisher error", zap.Error(err))
 	}
@@ -67,8 +68,6 @@ func main() {
 	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, currentCalendar)
 
 	ctx, cancel := context.WithCancel(context.Background())
-
-	waitGroup := sync.WaitGroup{}
 
 	waitGroup.Add(1)
 	go func() {

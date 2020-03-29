@@ -1,7 +1,10 @@
 package amqp
 
 import (
+	"time"
+
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
+	"github.com/google/uuid"
 )
 
 // Event - json event
@@ -26,5 +29,17 @@ func eventToJson(event domain.Event) Event {
 }
 
 func eventFromJson(event Event) (domain.Event, error) {
-	return domain.Event{}, nil
+	id, err := uuid.Parse(event.ID)
+	if err != nil {
+		return domain.Event{}, err
+	}
+
+	return domain.Event{
+		ID:          id,
+		Heading:     event.Heading,
+		DateTime:    time.Unix(event.DateTime, 0),
+		Duration:    time.Duration(event.Duration) * time.Second,
+		Description: event.Description,
+		Owner:       event.Owner,
+	}, nil
 }

@@ -2,10 +2,9 @@ package postgresstorage
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/lib/pq"
 
 	"github.com/jmoiron/sqlx"
 
@@ -21,9 +20,20 @@ type PostgresStorage struct {
 	db     *sqlx.DB
 }
 
+type dbEvent struct {
+	ID          string    `db:"id"`
+	Heading     string    `db:"heading"`
+	StartDate   time.Time `db:"start_date"`
+	StartTime   time.Time `db:"start_time"`
+	EndDate     time.Time `db:"end_date"`
+	EndTime     time.Time `db:"end_time"`
+	Description string    `db:"descr"`
+	Owner       string    `db:"owner"`
+}
+
 // New created new PostgresStorage
 func New(logger *zap.Logger, dsn string, maxOpenConn, maxIdleConn int) (*PostgresStorage, error) {
-	db, err := sqlx.Connect("pgx", dsn)
+	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		logger.Error("connect to db error", zap.Error(err))
 		return nil, err
@@ -94,7 +104,7 @@ func (s *PostgresStorage) Update(ctx context.Context, event domain.Event) error 
 // Listing all events
 func (s *PostgresStorage) Listing(ctx context.Context) ([]domain.Event, error) {
 	query := `SELECT * FROM events`
-	rows, err := s.db.QueryContext(ctx, query)
+	rows, err := s.db.QueryxContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -118,41 +128,42 @@ func (s *PostgresStorage) GetEventsInTime(ctx context.Context,
 		return nil, err
 	}
 
-	return s.parse(rows.Rows)
+	return s.parse(rows)
 }
 
-func (s *PostgresStorage) parse(rows *sql.Rows) ([]domain.Event, error) {
+func (s *PostgresStorage) parse(rows *sqlx.Rows) ([]domain.Event, error) {
 	defer rows.Close()
 
 	var events []domain.Event
 	for rows.Next() {
-		var id string
-		var heading string
-		var startDate time.Time
-		var startTime time.Time
-		var endDate time.Time
-		var endTime time.Time
-		var descr string
-		var owner string
-		if err := rows.Scan(&id, &heading, &startDate, &startTime, &endDate, &endTime, &descr, &owner); err != nil {
+		event := &dbEvent{}
+
+		if err := rows.StructScan(event); err != nil {
 			return nil, err
 		}
 
-		uuidID, err := uuid.Parse(id)
+		uuidID, err := uuid.Parse(event.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		dateTime := startTime.AddDate(startDate.Year(), int(startDate.Month()-1), startDate.Day()-1)
-		duration := endTime.AddDate(endDate.Year(), int(endDate.Month()-1), endDate.Day()-1).Sub(dateTime)
+		dateTime := event.StartTime.AddDate(
+			event.StartDate.Year(),
+			int(event.StartDate.Month()-1),
+			event.StartDate.Day()-1)
+
+		duration := event.EndTime.AddDate(
+			event.EndDate.Year(),
+			int(event.EndDate.Month()-1),
+			event.EndDate.Day()-1).Sub(dateTime)
 
 		events = append(events, domain.Event{
 			ID:          uuidID,
-			Heading:     heading,
+			Heading:     event.Heading,
 			DateTime:    dateTime,
 			Duration:    duration,
-			Description: descr,
-			Owner:       owner,
+			Description: event.Description,
+			Owner:       event.Owner,
 		})
 	}
 

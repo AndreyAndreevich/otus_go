@@ -7,19 +7,17 @@ import (
 	"os"
 	"sync"
 
+	"github.com/AndreyAndreevich/otus_go/calendar/internal/scheduler"
+
+	"github.com/AndreyAndreevich/otus_go/calendar/external/pkg/amqp"
+
 	_ "github.com/lib/pq"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/postgresstorage"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/config"
 
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/grpcserver"
-
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/pkg/httpserver"
-
 	"go.uber.org/zap"
-
-	"github.com/AndreyAndreevich/otus_go/calendar/internal/calendar"
 )
 
 func main() {
@@ -51,34 +49,39 @@ func main() {
 		logger.Fatal("HealthCheck storage error", zap.Error(err))
 	}
 
+	errorChan := make(chan error)
 	waitGroup := sync.WaitGroup{}
 
-	eventsDelivery := httpserver.New(logger, cfg.HTTPListen.IP, cfg.HTTPListen.Port)
+	publisher, err := amqp.NewProducer(logger, errorChan, cfg.RabbitConfig.DSN, cfg.RabbitConfig.Exchange, &waitGroup)
+	if err != nil {
+		logger.Fatal("create publisher error", zap.Error(err))
+	}
+	defer publisher.Close()
 
-	currentCalendar := calendar.New(logger, storage, eventsDelivery)
-	gRPCServer := grpcserver.New(logger, cfg.GRPC.IP, cfg.GRPC.Port, currentCalendar)
+	currentScheduler := scheduler.New(logger, storage, publisher)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		if err := currentCalendar.Run(ctx); err != nil {
-			logger.Error("error calendar run", zap.Error(err))
+		if err := currentScheduler.Schedule(ctx, cfg.ScheduleDuration); err != nil {
+			logger.Error("error schedule", zap.Error(err))
 		}
-		logger.Info("Calendar stopped")
+		logger.Info("Scheduler stopped")
 		cancel()
 	}()
 
 	waitGroup.Add(1)
 	go func() {
-		defer waitGroup.Done()
-		err := gRPCServer.Run(ctx)
-		if err != nil {
-			logger.Error("gRPC server run error", zap.Error(err))
+		select {
+		case <-ctx.Done():
+		case err, ok := <-errorChan:
+			if ok {
+				logger.Error("error from error channel", zap.Error(err))
+				cancel()
+			}
 		}
-		logger.Info("gRPC stopped")
-		cancel()
 	}()
 
 	waitGroup.Wait()

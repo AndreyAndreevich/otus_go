@@ -122,7 +122,7 @@ func (c *Consumer) Consume(ctx context.Context, handler func(event domain.Event)
 	deliveryChan, err := c.channel.Consume(
 		c.queue.Name,
 		"",
-		false,
+		true,
 		false,
 		false,
 		false,

@@ -41,11 +41,9 @@ func main() {
 	waitGroup := &sync.WaitGroup{}
 
 	consumer, err := amqp.NewConsumer(logger,
-		errorChan,
 		cfg.RabbitConfig.DSN,
 		cfg.RabbitConfig.Exchange,
 		cfg.RabbitConfig.Queue,
-		waitGroup,
 	)
 	if err != nil {
 		logger.Fatal("consumer create error", zap.Error(err))
@@ -65,7 +63,6 @@ func main() {
 				cancel()
 			}
 		case <-ctx.Done():
-
 		}
 	}()
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"sync"
 
 	"github.com/AndreyAndreevich/otus_go/calendar/internal/domain"
 
@@ -22,43 +21,52 @@ var (
 // Consumer implements events.Consumer
 type Consumer struct {
 	logger       *zap.Logger
-	errorChan    chan<- error
+	errorChan    chan *amqp.Error
 	connection   *amqp.Connection
 	channel      *amqp.Channel
 	queue        *amqp.Queue
 	exchangeName string
+	queueName    string
+	dsn          string
 }
 
 // NewConsumer - create new rabbit consumer
 func NewConsumer(
 	logger *zap.Logger,
-	errorChan chan<- error,
 	dsn string,
 	exchangeName,
 	queueName string,
-	waitGroup *sync.WaitGroup,
 ) (*Consumer, error) {
 
 	consumer := &Consumer{
-		exchangeName: exchangeName,
 		logger:       logger,
-		errorChan:    errorChan,
+		errorChan:    make(chan *amqp.Error),
+		exchangeName: exchangeName,
+		queueName:    queueName,
+		dsn:          dsn,
 	}
 
-	var err error
-	consumer.connection, err = amqp.Dial(dsn)
-	if err != nil {
+	if err := consumer.reconnect(); err != nil {
 		return nil, err
 	}
 
-	consumer.channel, err = consumer.connection.Channel()
+	return consumer, nil
+}
+
+func (c *Consumer) reconnect() (err error) {
+	c.connection, err = amqp.Dial(c.dsn)
 	if err != nil {
-		consumer.connection.Close()
-		return nil, err
+		return err
 	}
 
-	err = consumer.channel.ExchangeDeclare(
-		exchangeName,
+	c.channel, err = c.connection.Channel()
+	if err != nil {
+		c.connection.Close()
+		return err
+	}
+
+	err = c.channel.ExchangeDeclare(
+		c.exchangeName,
 		amqp.ExchangeFanout,
 		false,
 		false,
@@ -67,12 +75,12 @@ func NewConsumer(
 		amqp.Table{},
 	)
 	if err != nil {
-		consumer.Close()
-		return nil, err
+		c.Close()
+		return err
 	}
 
-	queue, err := consumer.channel.QueueDeclare(
-		queueName,
+	queue, err := c.channel.QueueDeclare(
+		c.queueName,
 		true,
 		false,
 		false,
@@ -80,24 +88,14 @@ func NewConsumer(
 		amqp.Table{},
 	)
 	if err != nil {
-		consumer.Close()
-		return nil, err
+		c.Close()
+		return err
 	}
 
-	consumer.queue = &queue
+	c.channel.NotifyClose(c.errorChan)
+	c.queue = &queue
 
-	errChan := make(chan *amqp.Error)
-	consumer.channel.NotifyClose(errChan)
-
-	waitGroup.Add(1)
-	go func(waitGroup *sync.WaitGroup) {
-		defer waitGroup.Done()
-		if err, ok := <-errChan; ok && err != nil {
-			errorChan <- errors.New(err.Error())
-		}
-	}(waitGroup)
-
-	return consumer, nil
+	return nil
 }
 
 // Consume - consume messages and handle events
@@ -133,53 +131,44 @@ func (c *Consumer) Consume(ctx context.Context, handler func(event domain.Event)
 		return err
 	}
 
-	waitGroup := &sync.WaitGroup{}
+	for {
+		select {
+		case <-ctx.Done():
+			c.logger.Debug("consumer close")
+			return nil
+		case err := <-c.errorChan:
+			c.logger.Warn("channel error", zap.Error(err))
+			if err := c.reconnect(); err != nil {
+				return err
+			}
+		case msg, ok := <-deliveryChan:
+			if !ok {
+				return nil
+			}
 
-	waitGroup.Add(1)
-	go func(waitGroup *sync.WaitGroup) {
-		defer waitGroup.Done()
-		for {
-			select {
-			case <-ctx.Done():
-				c.logger.Debug("consumer close")
-				return
-			case msg, ok := <-deliveryChan:
-				if ok {
-					c.logger.Debug("income message")
-					var jsonEvent Event
-					if err := json.Unmarshal(msg.Body, &jsonEvent); err != nil {
-						c.logger.Error("unmarshal error",
-							zap.ByteString("message", msg.Body),
-							zap.Error(err),
-						)
-						c.errorChan <- err
-						return
-					}
+			var jsonEvent Event
+			if err := json.Unmarshal(msg.Body, &jsonEvent); err != nil {
+				c.logger.Error("unmarshal error",
+					zap.ByteString("message", msg.Body),
+					zap.Error(err),
+				)
+				return err
+			}
 
-					event, err := eventFromJSON(jsonEvent)
-					if err != nil {
-						c.logger.Error("parse event error",
-							zap.Reflect("json event", jsonEvent),
-							zap.Error(err),
-						)
-						c.errorChan <- err
-						return
-					}
+			event, err := eventFromJSON(jsonEvent)
+			if err != nil {
+				c.logger.Error("parse event error",
+					zap.Reflect("json event", jsonEvent),
+					zap.Error(err),
+				)
+				return err
+			}
 
-					if err := handler(event); err != nil {
-						c.logger.Warn("handle event error", zap.Error(err))
-					}
-				} else {
-					c.errorChan <- ErrConsumerStop
-					return
-				}
+			if err := handler(event); err != nil {
+				c.logger.Warn("handle event error", zap.Error(err))
 			}
 		}
-	}(waitGroup)
-
-	waitGroup.Wait()
-
-	return nil
+	}
 }
 
 // Close consumer

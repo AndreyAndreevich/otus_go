@@ -12,12 +12,12 @@ import (
 // Scheduler is main struct
 type Scheduler struct {
 	logger    *zap.Logger
-	storage   domain.Storage
+	storage   domain.ScheduleStorage
 	publisher domain.Producer
 }
 
 // New create new scheduler
-func New(logger *zap.Logger, storage domain.Storage, publisher domain.Producer) *Scheduler {
+func New(logger *zap.Logger, storage domain.ScheduleStorage, publisher domain.Producer) *Scheduler {
 	return &Scheduler{
 		logger:    logger,
 		storage:   storage,

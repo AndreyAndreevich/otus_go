@@ -13,10 +13,12 @@ import (
 
 // Producer implements events.Producer
 type Producer struct {
-	logger     *zap.Logger
-	connection *amqp.Connection
-	channel    *amqp.Channel
-	exchange   string
+	logger       *zap.Logger
+	errorChan    chan *amqp.Error
+	connection   *amqp.Connection
+	channel      *amqp.Channel
+	exchangeName string
+	dsn          string
 }
 
 // NewProducer - create rabbit producer
@@ -28,23 +30,47 @@ func NewProducer(logger *zap.Logger,
 ) (result *Producer, err error) {
 
 	producer := &Producer{
-		exchange: exchange,
-		logger:   logger,
+		logger:       logger,
+		errorChan:    make(chan *amqp.Error),
+		exchangeName: exchange,
+		dsn:          dsn,
 	}
 
-	if producer.connection, err = amqp.Dial(dsn); err != nil {
-		logger.Error("parse amqp dsn error", zap.Error(err))
+	if err := producer.reconnect(); err != nil {
 		return nil, err
 	}
 
-	if producer.channel, err = producer.connection.Channel(); err != nil {
-		producer.connection.Close()
-		logger.Error("create channel error", zap.Error(err))
-		return nil, err
+	waitGroup.Add(1)
+	go func(waitGroup *sync.WaitGroup) {
+		defer waitGroup.Done()
+		for {
+			if err, ok := <-producer.errorChan; ok && err != nil {
+				logger.Warn("channel error", zap.Error(err))
+				if err := producer.reconnect(); err != nil {
+					errorChan <- errors.New(err.Error())
+					return
+				}
+			}
+		}
+	}(waitGroup)
+
+	return producer, nil
+}
+
+func (p *Producer) reconnect() (err error) {
+	if p.connection, err = amqp.Dial(p.dsn); err != nil {
+		p.logger.Error("parse amqp dsn error", zap.Error(err))
+		return err
 	}
 
-	err = producer.channel.ExchangeDeclare(
-		exchange,
+	if p.channel, err = p.connection.Channel(); err != nil {
+		p.connection.Close()
+		p.logger.Error("create channel error", zap.Error(err))
+		return err
+	}
+
+	err = p.channel.ExchangeDeclare(
+		p.exchangeName,
 		amqp.ExchangeFanout,
 		false,
 		false,
@@ -53,25 +79,15 @@ func NewProducer(logger *zap.Logger,
 		nil,
 	)
 	if err != nil {
-		producer.channel.Close()
-		producer.connection.Close()
+		p.Close()
 
-		logger.Error("declare exchange error", zap.Error(err))
-		return nil, err
+		p.logger.Error("declare exchange error", zap.Error(err))
+		return err
 	}
 
-	errChan := make(chan *amqp.Error)
-	producer.channel.NotifyClose(errChan)
+	p.channel.NotifyClose(p.errorChan)
 
-	waitGroup.Add(1)
-	go func(waitGroup *sync.WaitGroup) {
-		defer waitGroup.Done()
-		if err, ok := <-errChan; ok && err != nil {
-			errorChan <- errors.New(err.Error())
-		}
-	}(waitGroup)
-
-	return producer, nil
+	return nil
 }
 
 // Publish event to exchange
@@ -85,7 +101,7 @@ func (p *Producer) Publish(event domain.Event) error {
 	}
 
 	err = p.channel.Publish(
-		p.exchange,
+		p.exchangeName,
 		"",
 		false,
 		false,
